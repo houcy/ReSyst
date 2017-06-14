@@ -9,26 +9,53 @@
     :copyright: 2017, Jonathan Racicot, see AUTHORS for more details
     :license: MIT, see LICENSE for more details
 """
+import json
 from enum import Enum
+from resyst.dataset import DataSet
 
-Feature = Enum(
-    'BFD',
-    'WFD',
-    'BYTE_VAL_MEAN',
-    'BYTE_VAL_STDDEV',
-    'BYTE_VAL_MAD',
-    'LOW_ASCII_FREQ',
-    'HIGH_ASCII_FREQ',
-    'STD_KURTOSIS',
-    'STD_SKEWNESS',
-    'AVG_BYTE_CONTINUITY',
-    'LONGEST_STREAK',
-    'SHANNON_ENTROPY'
-)
+class Feature (Enum):
+    BFD = 1
+    WFD = 2
+    BYTE_VAL_MEAN = 3
+    BYTE_VAL_STDDEV = 4
+    BYTE_VAL_MAD = 5
+    LOW_ASCII_FREQ = 6
+    HIGH_ASCII_FREQ = 7
+    STD_KURTOSIS = 8
+    STD_SKEWNESS = 9
+    AVG_BYTE_CONTINUITY = 10
+    LONGEST_STREAK = 11
+    SHANNON_ENTROPY = 12
+
+    def __str__(self):
+        return self.name
+
+class FeaturesEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, Feature):
+            return str(o)
 
 class FeatureSet(object):
+
     @staticmethod
-    def extract_features(_features, _codeblock):
+    def extract_features_from_dataset(_features, _dataset):
+        assert  _features is not None
+        assert _dataset is not None
+        assert len(_features) > 0
+        assert len(_dataset) > 0
+        assert isinstance(_dataset, DataSet)
+
+        features_set = []
+
+        for k in _dataset.data.keys():
+            obj = _dataset.data[k]
+            features_obj = FeatureSet.extract_features_from_single_object(_features, obj)
+            features_set.append(features_obj)
+
+        return features_set
+
+    @staticmethod
+    def extract_features_from_single_object(_features, _codeblock):
         """
         Extracts a given set of features from the given code and returns their
         values into a dictionary.
@@ -46,16 +73,44 @@ class FeatureSet(object):
         :return: A dictionary where the features are the keys and their
         values are the values associated to the feature.
         """
+        assert  _features is not None
+        assert _codeblock is not None
+        assert len(_features) > 0
+
         features = _features
         code_blocks = _codeblock
 
         if not isinstance(_features, list):
             features = [_features]
 
-        return FeatureSet.__extract_features(features, code_blocks)
+        for f in features:
+            assert isinstance(f, Feature)
+
+        return FeatureSet.__extract_features_from_single_object(features, code_blocks)
 
     @staticmethod
-    def __extract_features(_features, _codeblock):
+    def save_features_to_json(_featureset, _destfile):
+        assert _featureset is not None
+        assert _destfile is not None
+
+        for fdict in _featureset:
+            for key in fdict.keys():
+                if type(key) is not str:
+                    try:
+                        fdict[str(key)] = fdict[key]
+                    except:
+                        try:
+                            fdict[repr(key)] = fdict[key]
+                        except:
+                            pass
+                    del fdict[key]
+
+        with open(_destfile, "w") as f:
+            f.write(json.dumps(_featureset))
+
+
+    @staticmethod
+    def __extract_features_from_single_object(_features, _codeblock):
         """
         This is the internal standardize function to process calls to
         FeatureSet.extract_features.
@@ -66,7 +121,9 @@ class FeatureSet(object):
         :return: A dictionary where the features are the keys and their
         values are the values associated to the feature.
         """
-        features_data = {}
+        features_data = {
+            "labels"    :   _codeblock.labels
+        }
 
         for ft in _features:
             if ft == Feature.BFD:

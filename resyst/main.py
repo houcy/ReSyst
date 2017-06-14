@@ -6,8 +6,54 @@ from __future__ import print_function
 
 import argparse
 import sys
+import timeit
 
 from resyst import metadata
+from resyst.dataset import *
+from resyst import log
+from resyst.features import *
+
+def test():
+    source_directory = "D:\\tmp\\govdocs\\debug"
+    features_save_file = "D:\\tmp\\govdocs\\features.json"
+    fileset = DataSet()
+    log.info("Loading file set from '{sd:s}'.".format(
+        sd = source_directory
+    ))
+    fileset.load_from_directory(source_directory)
+    log.info("{fc:d} file(s) loaded from '{sd:s}'.".format(
+        fc = len(fileset),
+        sd = source_directory
+    ))
+
+    files = fileset.data
+    for fileobj in files.values():
+        fileobj.set_extension_as_label()
+
+    features_to_extract = [
+        Feature.BFD
+    ]
+
+    log.info("Extracting {fc:d} feature(s):".format(
+        fc = len(features_to_extract)
+    ))
+    for f in features_to_extract:
+        log.info("\t{fn:s}".format(fn=f))
+
+    features_extracted = FeatureSet.extract_features_from_dataset(
+        features_to_extract, fileset
+    )
+
+    log.info("Total of {fc:d} feature(s) extracted from {fss:d} file(s).".format(
+        fc = len(features_to_extract) * len(fileset),
+        fss = len(fileset)
+    ))
+
+    log.info("Saving features to '{ff:s}'...".format(
+        ff = features_save_file
+    ))
+    FeatureSet.save_features_to_json(features_extracted, features_save_file)
+    log.info("Completed")
 
 
 def main(argv):
@@ -45,6 +91,7 @@ URL: <{url}>
 
     print(epilog)
 
+    test()
     return 0
 
 
@@ -54,4 +101,5 @@ def entry_point():
 
 
 if __name__ == '__main__':
-    entry_point()
+    #entry_point()
+    main(sys.argv)

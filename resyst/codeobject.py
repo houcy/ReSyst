@@ -15,22 +15,64 @@ import math
 import struct
 import hashlib
 
+from resyst.log import *
 
-class CodeObject(object):
+class LabelledObject(object):
+    def __init__(self, _labels = None):
+        """
+        Initializes the object with the given labels if any.
+        :param _labels: A list of label to add to the object.
+        """
+        if _labels == None:
+            self.__labels = []
+        else:
+            self.__labels = _labels
+
+    def __str__(self):
+        """
+        Returns a comma-separated string of the labels.
+        :return: A comma-separated string of the labels.
+        """
+        return ','.join(self.__labels)
+
+    @property
+    def labels(self):
+        """
+        Returns the list of labels associated with this object.
+        :return: The list of labels associated with this object.
+        """
+        return self.__labels
+
+    def add_label(self, _label):
+        """
+        Adds a label to the current object if not already in the
+        internal list.
+        :param _label: The label to add. Cannot be 'None'
+        :return:
+        """
+        assert _label != None
+        if _label not in self.__labels:
+            debug("Adding label '{l:s}' to object '{os:s}'.".format(
+                l = _label, os = str(self)
+            ))
+            self.__labels.append(_label)
+
+class CodeObject(LabelledObject):
     def __init__(self, _binarydata):
         assert _binarydata is not None
+        super().__init__()
 
-        self.__data = _binarydata
+        self._data = _binarydata
 
     def __str__(self):
         fmt = "<CodeObject Size={s:d} byte(s), MD5={h:s}>"
-        return fmt.format(s=len(self.__data), h=self.md5())
+        return fmt.format(s=len(self._data), h=self.md5())
 
     def __len__(self):
         """
         Returns the length of the binary object.
         """
-        return len(self.__data)
+        return len(self._data)
 
     def __eq__(self, _other):
         """
@@ -45,7 +87,7 @@ class CodeObject(object):
         data.
         """
         if isinstance(_other, self.__class__):
-            return self.__data == _other.__data
+            return self._data == _other.__data
         return False
 
     def __ne__(self, _other):
@@ -85,7 +127,7 @@ class CodeObject(object):
 
         @return Data contained in this object.
         """
-        return self.__data
+        return self._data
 
     def split_by_size(self, _chunksize):
         """
@@ -100,10 +142,10 @@ class CodeObject(object):
         Reference:
             https://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks
         """
-        assert _chunksize < len(self.__data)
+        assert _chunksize < len(self._data)
 
-        for i in range(0, len(self.__data), _chunksize):
-            yield CodeObject(self.__data[i:i + _chunksize])
+        for i in range(0, len(self._data), _chunksize):
+            yield CodeObject(self._data[i:i + _chunksize])
 
     def to_file(self, _file, _mode="wb"):
         """
@@ -112,11 +154,11 @@ class CodeObject(object):
         @param _file The destination file.
         @param _mode The writing mode. By default the mode is "wb"
         """
-        assert len(self.__data) > 0
+        assert len(self._data) > 0
         assert _file is not None
 
         with open(_file, _mode) as f:
-            f.write(self.__data)
+            f.write(self._data)
 
     def bfd(self):
         """
@@ -137,11 +179,11 @@ class CodeObject(object):
         current binary object.
         """
         dist = {}
-        for b in self.__data:
+        for b in self._data:
             if b in dist:
-                dist[ord(b)] += 1
+                dist[b] += 1
             else:
-                dist[ord(b)] = 1
+                dist[b] = 1
         return dist
 
     def wfd(self):
@@ -157,8 +199,8 @@ class CodeObject(object):
         current binary object.
         """
         dist = {}
-        for i in range(0, len(self.__data), 2):
-            w = struct.unpack("H", self.__data[i:i + 1])[0]
+        for i in range(0, len(self._data), 2):
+            w = struct.unpack("H", self._data[i:i + 1])[0]
             if w in dist:
                 dist[w] += 1
             else:
@@ -176,7 +218,7 @@ class CodeObject(object):
 
         @return The mean value of all bytes within the object.
         """
-        return sum(map(ord, self.__data)) / len(self.__data)
+        return sum(map(ord, self._data)) / len(self._data)
 
     def byte_std_dev(self):
         """
@@ -187,7 +229,7 @@ class CodeObject(object):
         contents of the object.
         """
         x_i = self.mean_byte_value()
-        s_i = math.sqrt(sum([math.pow(x - x_i, 2) for x in map(ord, self.__data)]) / (len(self.__data) - 1))
+        s_i = math.sqrt(sum([math.pow(x - x_i, 2) for x in map(ord, self._data)]) / (len(self._data) - 1))
         return s_i
 
     def byte_mean_dev(self):
@@ -199,7 +241,7 @@ class CodeObject(object):
         the contents of the object.
         """
         x_i = self.mean_byte_value()
-        mad = sum([abs(x - x_i) for x in map(ord, self.__data)]) / (len(self.__data))
+        mad = sum([abs(x - x_i) for x in map(ord, self._data)]) / (len(self._data))
         return mad
 
     def byte_std_kurtosis(self):
@@ -213,8 +255,8 @@ class CodeObject(object):
         """
         x_i = self.mean_byte_value()
         s_i = self.byte_std_dev()
-        k_i = sum([math.pow(x - x_i, 4) for x in map(ord, self.__data)]) / (
-            (len(self.__data) - 1) * math.pow(s_i, 4))
+        k_i = sum([math.pow(x - x_i, 4) for x in map(ord, self._data)]) / (
+            (len(self._data) - 1) * math.pow(s_i, 4))
         return k_i
 
     def byte_std_skewness(self):
@@ -228,8 +270,8 @@ class CodeObject(object):
         """
         x_i = self.mean_byte_value()
         s_i = self.byte_std_dev()
-        g_i = sum([math.pow(x - x_i, 3) for x in map(ord, self.__data)]) / (
-            (len(self.__data) - 1) * math.pow(s_i, 3))
+        g_i = sum([math.pow(x - x_i, 3) for x in map(ord, self._data)]) / (
+            (len(self._data) - 1) * math.pow(s_i, 3))
         return g_i
 
     def byte_avg_continuity(self):
@@ -239,10 +281,10 @@ class CodeObject(object):
         @return Average distance between consecutive bytes.
         """
         x_i = self.mean_byte_value()
-        b_v = map(ord, self.__data)
+        b_v = map(ord, self._data)
         d = sum([math.pow(x - x_i, 4) for x in b_v])
         t = math.pow(sum([math.pow(x - x_i, 2) for x in b_v]), 2)
-        c_i = len(self.__data) * (d / t)
+        c_i = len(self._data) * (d / t)
         return c_i
 
     def longest_byte_streak(self):
@@ -262,17 +304,17 @@ class CodeObject(object):
         of its longest consecutive streak.
         """
         i = 0
-        n = len(self.__data)
-        max_byte = self.__data[0]
+        n = len(self._data)
+        max_byte = self._data[0]
         max_streak = 1
 
         while (i + 1) < n:
             cur_streak = 0
-            while ((i + 1) < n) and (self.__data[i] == self.__data[i + 1]):
+            while ((i + 1) < n) and (self._data[i] == self._data[i + 1]):
                 cur_streak += 1
                 i += 1
             if cur_streak > max_streak:
-                max_byte = self.__data[i]
+                max_byte = self._data[i]
                 max_streak = cur_streak
             i += 1
         return max_byte, max_streak
@@ -326,8 +368,8 @@ class CodeObject(object):
         @return The entropy of the current object.
         """
         entropy = 0
-        for b in self.__data:
-            p_x = float(self.__data.count(b)) / len(self.__data)
+        for b in self._data:
+            p_x = float(self._data.count(b)) / len(self._data)
             if p_x > 0.0:
                 entropy += p_x * math.log(p_x, 2)
         return entropy
@@ -341,7 +383,11 @@ class CodeObject(object):
         MD5 of the contents of this object.
         """
         m = hashlib.md5()
-        m.update(self.__data)
+        d = self._data
+        if isinstance(d, bytes):
+            m.update(d)
+        else:
+            m.update(d.encode("utf-8"))
         return m.hexdigest()
 
     def sha1(self):
@@ -353,7 +399,11 @@ class CodeObject(object):
         SHA1 of the contents of this object.
         """
         m = hashlib.sha1()
-        m.update(self.__data)
+        d = self._data
+        if isinstance(d, bytes):
+            m.update(d)
+        else:
+            m.update(d.encode("utf-8"))
         return m.hexdigest()
 
     def sha224(self):
@@ -365,7 +415,11 @@ class CodeObject(object):
         SHA224 of the contents of this object.
         """
         m = hashlib.sha224()
-        m.update(self.__data)
+        d = self._data
+        if isinstance(d, bytes):
+            m.update(d)
+        else:
+            m.update(d.encode("utf-8"))
         return m.hexdigest()
 
     def sha256(self):
@@ -377,7 +431,11 @@ class CodeObject(object):
         SHA256 of the contents of this object.
         """
         m = hashlib.sha256()
-        m.update(self.__data)
+        d = self._data
+        if isinstance(d, bytes):
+            m.update(d)
+        else:
+            m.update(d.encode("utf-8"))
         return m.hexdigest()
 
     def sha384(self):
@@ -389,7 +447,11 @@ class CodeObject(object):
         SHA384 of the contents of this object.
         """
         m = hashlib.sha384()
-        m.update(self.__data)
+        d = self._data
+        if isinstance(d, bytes):
+            m.update(d)
+        else:
+            m.update(d.encode("utf-8"))
         return m.hexdigest()
 
     def sha512(self):
@@ -401,7 +463,11 @@ class CodeObject(object):
         SHA512 of the contents of this object.
         """
         m = hashlib.sha512()
-        m.update(self.__data)
+        d = self._data
+        if isinstance(d, bytes):
+            m.update(d)
+        else:
+            m.update(d.encode("utf-8"))
         return m.hexdigest()
 
     def __bfd_subrange(self, _min, _max, _exclude=[]):
@@ -468,7 +534,13 @@ class FileObject(CodeObject):
         super().__init__('')
         self.filename = _file
         with open(_file, "rb") as f:
-            self.__data = f.read()
+            self._data = f.read()
+
+    def __str__(self):
+        fmt = "<FileObject Size={fs:d} byte(s) Hash='{fh:s}'>"
+        return fmt.format(
+            fs = len(self._data), fh = self.hash()
+        )
 
     def hash(self):
         """
@@ -477,3 +549,34 @@ class FileObject(CodeObject):
         """
         return self.sha224()
 
+    @property
+    def file_path(self):
+        """
+        Returns the path of this file object.
+        :return: the path of this file object.
+        """
+        return self.filename
+
+    @property
+    def extension(self):
+        """
+        Returns the extension of the file if any.
+
+        This function will return the file extension based
+        on the position of the "." in the file name. If no dot
+        is found, returns an empty string.
+
+        :return: The extension of the file, or an empty string if none
+        found.
+        """
+        if "." in self.filename:
+            return os.path.splitext(self.filename)[1][1:].upper()
+        else:
+            return ""
+
+    def set_extension_as_label(self):
+        """
+        Adds the file extension as a label of the file object.
+        :return:
+        """
+        self.add_label(self.extension)
