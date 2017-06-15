@@ -130,6 +130,28 @@ class DataSet(object):
                 elif re.match(_filter, filename):
                     self.__add_file(os.path.join(root, filename))
 
+    def add_directory(self, _directory, _filter=".*"):
+        """
+        Add files from the specified directory matching the
+        given filter to the data set.
+
+        This function will recursively traverse the given directory
+        and extract all files from it. It will then add each file into
+        the data set if they match the given filter given. If no filter is
+        specified, then all files will be added by default.
+
+        :param _directory: Directory containing files to add
+        :param _filter: A regular expression specifying which files to include
+        :return:
+        """
+        assert _directory is not None
+        assert os.path.isdir(_directory)
+
+        for root, dirs, files in os.walk(_directory):
+            for file in files:
+                if re.match(_filter, file):
+                    self.__add_file(file)
+
     def add_file(self, _file):
         """
         Shortcut function for DataSet.add_files when only a single
