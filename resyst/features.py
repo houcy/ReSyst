@@ -9,6 +9,7 @@
     :copyright: 2017, Jonathan Racicot, see AUTHORS for more details
     :license: MIT, see LICENSE for more details
 """
+import os
 import json
 from enum import Enum
 from resyst.dataset import DataSet
@@ -29,6 +30,7 @@ class Feature (Enum):
 
     def __str__(self):
         return self.name
+
 
 class FeaturesEncoder(json.JSONEncoder):
     def default(self, o):
@@ -90,9 +92,24 @@ class FeatureSet(object):
 
     @staticmethod
     def save_features_to_json(_featureset, _destfile):
+        """
+        Saves a set of features to the provided destination file using the
+        JSON format.
+
+        This function will store the given feature set, which is expected to
+        be a list of dictionaries created by the FeatureSet.extract_features_from_dataset
+        function, to the given file using the JSON format.
+
+        :param _featureset: A list of dictionaries
+        :param _destfile: The JSON file to save the features into.
+        :return:
+        """
         assert _featureset is not None
         assert _destfile is not None
 
+        #
+        # Reference:
+        # https://stackoverflow.com/questions/12734517/json-dumping-a-dict-gives-typeerror-keys-must-be-a-string
         for fdict in _featureset:
             for key in fdict.keys():
                 if type(key) is not str:
@@ -108,6 +125,41 @@ class FeatureSet(object):
         with open(_destfile, "w") as f:
             f.write(json.dumps(_featureset))
 
+    @staticmethod
+    def load_features_from_json(_jsonfile):
+        assert _jsonfile is not None
+        assert os.path.isfile(_jsonfile)
+
+        features_from_file = []
+
+        with open(_jsonfile, "r") as f:
+            json_data = json.load(f)
+
+        # Replaces the keys with a Feature enum object
+        for fdict in json_data:
+            for skey in fdict.keys():
+                feature_value = fdict[skey]
+                if skey == Feature.BFD.name:
+                    v = [0] * 256
+                    for bvalue in feature_value.keys():
+                        v[int(bvalue)] = int(feature_value[bvalue])
+                    fdict[Feature[skey]] = v
+                    del fdict[skey]
+                elif skey == Feature.WFD.name:
+                    v = [0] * 65536
+                    for bvalue in feature_value.keys():
+                        v[int(bvalue)] = int(feature_value[bvalue])
+                    fdict[Feature[skey]] = v
+                    del fdict[skey]
+                elif skey == "labels":
+                    pass
+                else:
+                    fdict[Feature[skey]] = float(feature_value)
+                    del fdict[skey]
+
+            features_from_file.append(fdict)
+
+        return features_from_file
 
     @staticmethod
     def __extract_features_from_single_object(_features, _codeblock):

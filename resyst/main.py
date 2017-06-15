@@ -55,6 +55,14 @@ def test():
     FeatureSet.save_features_to_json(features_extracted, features_save_file)
     log.info("Completed")
 
+    features_load_file = features_save_file
+    log.info("Retrieving features from '{fs:s}'...".format(
+        fs = features_load_file
+    ))
+    features_from_file = FeatureSet.load_features_from_json(features_load_file)
+    log.info("Extracted features from {sc:d} sample(s).".format(
+        sc = len(features_from_file)
+    ))
 
 def main(argv):
     """Program entry point.
