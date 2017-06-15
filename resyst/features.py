@@ -11,6 +11,7 @@
 """
 import os
 import json
+import random
 from enum import Enum
 from resyst.dataset import DataSet
 
@@ -264,3 +265,152 @@ class FeatureSet(object):
                 features_data[Feature.SHANNON_ENTROPY] = _codeblock.shannon_entropy()
 
         return features_data
+
+
+class FeatureData(object):
+    def __init__(self, _data = None):
+        self._data = _data
+
+    def __len__(self):
+        return len(self._data)
+
+    @property
+    def data(self): return self._data
+
+    def get_training_and_test_sets(self, _percentage):
+        assert _percentage > 0
+        assert _percentage < 1
+
+        ds1, ds2 = self.__split_by_percentage(_percentage)
+
+        ds1_values, ds1_labels = ds1.__serialize_features_matrix()
+        ds2_values, ds2_labels = ds1.__serialize_features_matrix()
+
+        return [(ds1_values, ds1_labels), (ds2_values, ds2_labels)]
+
+    def __split_by_percentage(self, _percentage):
+        """
+        Shortcut function for DataSet.split_by_count. This function
+        will return 2 new datasets based on the current dataset.
+
+        This function will calculate how many objects to be splitted
+        in 2 new datasets based on the current count of objects. The
+        function will then use DataSet.split_by_count to create the
+        datasets.
+
+        :param _percentage: A value between 0 and 1, representing the
+        percentage of current objects to include in the first dataset.
+        :return:  A tuple containing both datasets created.
+        """
+        assert _percentage > 0
+        assert _percentage < 1
+
+        count = int(len(self._data) * _percentage)
+        return self.__split_by_count(count)
+
+    def __split_by_count(self, _count):
+        """
+        Splits the current data set into 2 separated datasets.
+
+        This function will first shuffle the internal directory
+        to introduce randomness in the selection of items part of both
+        datasets. Afterwards, the sets will be divided in 2; the first
+        dataset will contain "_count" elements from the shuffled dictionary
+        while the second dataset will contain the remaining items.
+
+        This function will return a tuple containing the 2 datasets
+        created.
+
+        :param _count: The number of items to include in the first dataset.
+        This value must be greater than 0 and lower than the count of items
+        currently stored in the dataset object.
+
+        :return: A tuple containing both datasets created.
+        """
+        assert _count > 0
+        assert _count < len(self._data)
+
+        random.shuffle(self._data)
+
+        is1 = self._data[_count:]
+        is2 = self._data[:_count]
+
+        ds1 = FeatureData(is1)
+        ds2 = FeatureData(is2)
+
+        return ds1, ds2
+
+    def __serialize_features_matrix(self):
+
+        features_values = []
+        features_labels = []
+
+        for featuredict in self._data:
+            v, l = FeatureSet.serialize_features_dict(featuredict)
+            features_values.append(v)
+            features_labels.append(l)
+
+        return features_values, features_labels
+
+    def __serialize_features_dict(self, _featuresdict):
+        assert _featuresdict is not None
+        features_values = []
+        features_labels = []
+
+        for f in _featuresdict.keys():
+            if f in _featuresdict.keys() and f != "labels":
+                v = _featuresdict[f]
+                if isinstance(v, list):
+                    features_values += v
+                else:
+                    features_values.append(v)
+
+        if "labels" in _featuresdict.keys():
+            features_labels = _featuresdict["labels"]
+
+        return features_values, features_labels
+
+    @staticmethod
+    def load_features_from_json(_jsonfile):
+        """
+        TODO
+        :param _jsonfile:
+        :return:
+        """
+        assert _jsonfile is not None
+        assert os.path.isfile(_jsonfile)
+
+        features_from_file = []
+
+        with open(_jsonfile, "r") as f:
+            json_data = json.load(f)
+
+        # Replaces the keys with a Feature enum object
+        for fdict in json_data:
+            labels = None
+            for skey in fdict.keys():
+                if not isinstance(skey, Feature):
+                    feature_value = fdict[skey]
+                    if skey == Feature.BFD.name:
+                        v = [0] * 256
+                        for bvalue in feature_value.keys():
+                            v[int(bvalue)] = int(feature_value[bvalue])
+                        fdict[Feature[skey]] = v
+                        del fdict[skey]
+                    elif skey == Feature.WFD.name:
+                        v = [0] * 65536
+                        for bvalue in feature_value.keys():
+                            v[int(bvalue)] = int(feature_value[bvalue])
+                        fdict[Feature[skey]] = v
+                        del fdict[skey]
+                    elif skey == "labels":
+                        # Single label for now:
+                        fdict[skey] = feature_value[0]
+                    else:
+                        fdict[Feature[skey]] = float(feature_value)
+                        del fdict[skey]
+
+            features_from_file.append(fdict)
+
+        fd = FeatureData(features_from_file)
+        return fd
