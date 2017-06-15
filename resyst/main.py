@@ -9,6 +9,7 @@ import sys
 import timeit
 from sklearn.neighbors import *
 from sklearn.svm import *
+from resyst.machine import *
 
 from resyst import metadata
 from resyst.dataset import *
@@ -72,48 +73,19 @@ def test():
         sc = len(features_from_file)
     ))
 
-    [(training_values, training_labels), (test_values, test_labels)] = \
-        features_from_file.get_training_and_test_sets(training_to_test_ratio)
+    k = 3
+    C = 256
+    kernel = 'linear'
+    gamma = 2
+    knn = KNNClassifier(_k = k)
+    svm = SVMClassifier(_C = C, _kernel=kernel, _gamma=gamma)
 
-    #Experimental from here:
-    info("Applying KNN (k=3) on testing set...")
-    knn = KNeighborsClassifier(n_neighbors=3)
-    knn.fit(training_values, training_labels)
-    successful_prediction = 0
-    for i in range(len(test_values)):
-        response = knn.predict((test_values[i], ))
-        if response == test_labels[i]:
-            info("\tExpected: {ea:s}\tPrediction: {pa:s}".format(
-                ea = test_labels[i], pa = response[0]
-            ))
-            successful_prediction += 1
-        else:
-            error("\tExpected: {ea:s}\tPrediction: {pa:s}".format(
-                ea = test_labels[i], pa = response[0]
-            ))
+    knn_accuracy, knn_results = knn.test_accuracy(features_from_file, _training_to_test_ratio = 0.9)
+    svm_accuracy, svm_results = svm.test_accuracy(features_from_file, _training_to_test_ratio = 0.9)
 
-    accuracy = successful_prediction/float(len(test_values))
-    info("Estimated accuracy: {a:.4f}".format(a=accuracy))
-
-    info("Applying SVM (C=256) on testing set...")
-    svm = SVC(C=1024, kernel='linear')
-    svm.fit(training_values, training_labels)
-    successful_prediction = 0
-
-    for i in range(len(test_values)):
-        response = svm.predict((test_values[i], ))
-        if response == test_labels[i]:
-            debug("\t[OK  ]\tExpected: {ea:s}\tPrediction: {pa:s}".format(
-                ea = test_labels[i], pa = response[0]
-            ))
-            successful_prediction += 1
-        else:
-            ("\t[FAIL]\tExpected: {ea:s}\tPrediction: {pa:s}".format(
-                ea = test_labels[i], pa = response[0]
-            ))
-
-    accuracy = successful_prediction/float(len(test_values))
-    info("Estimated accuracy: {a:.4f}".format(a=accuracy))
+    info("KNN-{kv:d}: Estimated accuracy: {av:.4f}".format(kv=k, av=knn_accuracy))
+    info("SVM (C={cv:d}, kernel='{kv:s}', gamma='{gv:.2f}'), : Estimated accuracy: {av:.4f}".format(
+        cv=C, kv=kernel, gv=gamma, av=svm_accuracy))
 
 def main(argv):
     """Program entry point.
