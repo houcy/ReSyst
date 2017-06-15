@@ -20,6 +20,8 @@ def test():
     source_directory = "D:\\tmp\\govdocs\\001"
     features_save_file = "D:\\tmp\\govdocs\\features.json"
     features_load_file = features_save_file
+    training_to_test_ratio = 0.9
+
     if not skip_training:
         fileset = DataSet()
         log.info("Loading file set from '{sd:s}'.".format(
@@ -71,7 +73,7 @@ def test():
     ))
 
     [(training_values, training_labels), (test_values, test_labels)] = \
-        features_from_file.get_training_and_test_sets(0.9)
+        features_from_file.get_training_and_test_sets(training_to_test_ratio)
 
     #Experimental from here:
     info("Applying KNN (k=3) on testing set...")
@@ -99,7 +101,7 @@ def test():
     successful_prediction = 0
 
     for i in range(len(test_values)):
-        response = knn.predict((test_values[i], ))
+        response = svm.predict((test_values[i], ))
         if response == test_labels[i]:
             debug("\t[OK  ]\tExpected: {ea:s}\tPrediction: {pa:s}".format(
                 ea = test_labels[i], pa = response[0]

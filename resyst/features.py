@@ -278,6 +278,20 @@ class FeatureData(object):
     def data(self): return self._data
 
     def get_training_and_test_sets(self, _percentage):
+        """
+        Divides the current features dataset into training and testing sets
+        based on the given percentage.
+
+        This function will use the current percentage value, which should be
+        between 0 and 1 exclusively, to assess how many items should be stored
+        in the training set. The remaining items will be stored in the testing
+        sets. The function will return a tuple of FeatureData objects:
+
+        (training_set, test_set) = feature_data.split(0.9)
+
+        :param _percentage: The percentage of items to store in the training set.
+        :return: A tuple containing the training set and test set.
+        """
         assert _percentage > 0
         assert _percentage < 1
 
@@ -341,7 +355,24 @@ class FeatureData(object):
         return ds1, ds2
 
     def __serialize_features_matrix(self):
+        """
+        Converts the internal list of feature dictionaries into matrices
+        containing the values of the features and labels in such a way
+        they can be used with the scilearn-kit module.
 
+        This function will use the FeatureData.__serialize_features_dict on
+        each dictionary of features contained in the internal list of features.
+        Each list of the resulting tuple (values, labels) will be stored in
+        in their corresponding matrix in order to obtain 2 matrices; one
+        containing all features values of the data set while the other will
+        contain the corresponding labels. This function will return a tuple
+        of matrices as:
+
+        (features_values_matrix, features_labels_matrix) = \
+            feature_data.__serialize_features_matrix()
+
+        :return: A tuple of matrices (features_values_matrix, features_labels_matrix)
+        """
         features_values = []
         features_labels = []
 
@@ -353,6 +384,20 @@ class FeatureData(object):
         return features_values, features_labels
 
     def __serialize_features_dict(self, _featuresdict):
+        """
+        Converts a dictionary of features into two lists; one list containing
+        the values of the features and one list containing the corresponding
+        label(s).
+
+        This function will extract the values of each feature stored in the
+        given dictionary and insert them in a list in the order they appear inthe
+        dictionary. The labels will be stored in a separate list. Both lists are
+        returned in a tuple in the format of (features_values, features_labels).
+
+        :param _featuresdict: A dictionary containing Feature/values key pairs.
+        :return: A tuple of 2 lists; one containing the values of the features, one
+        containing a list of associated labels.
+        """
         assert _featuresdict is not None
         features_values = []
         features_labels = []
@@ -373,9 +418,11 @@ class FeatureData(object):
     @staticmethod
     def load_features_from_json(_jsonfile):
         """
-        TODO
-        :param _jsonfile:
-        :return:
+        Creates a FeatureData object filled with feature data extracted from
+        a JSON file created using the FeatureSet.save_features_to_json().
+
+        :param _jsonfile: A JSON file containing feature data.
+        :return: A FeatureData object.
         """
         assert _jsonfile is not None
         assert os.path.isfile(_jsonfile)
