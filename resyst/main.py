@@ -7,6 +7,8 @@ from __future__ import print_function
 import argparse
 import sys
 import timeit
+from sklearn.neighbors import *
+from sklearn.svm import *
 
 from resyst import metadata
 from resyst.dataset import *
@@ -14,46 +16,49 @@ from resyst import log
 from resyst.features import *
 
 def test():
-    source_directory = "D:\\tmp\\govdocs\\debug"
+    skip_training = True
+    source_directory = "D:\\tmp\\govdocs\\001"
     features_save_file = "D:\\tmp\\govdocs\\features.json"
-    fileset = DataSet()
-    log.info("Loading file set from '{sd:s}'.".format(
-        sd = source_directory
-    ))
-    fileset.load_from_directory(source_directory)
-    log.info("{fc:d} file(s) loaded from '{sd:s}'.".format(
-        fc = len(fileset),
-        sd = source_directory
-    ))
+    features_load_file = features_save_file
+    if not skip_training:
+        fileset = DataSet()
+        log.info("Loading file set from '{sd:s}'.".format(
+            sd = source_directory
+        ))
+        fileset.load_from_directory(source_directory)
+        log.info("{fc:d} file(s) loaded from '{sd:s}'.".format(
+            fc = len(fileset),
+            sd = source_directory
+        ))
 
-    files = fileset.data
-    for fileobj in files.values():
-        fileobj.set_extension_as_label()
+        files = fileset.data
+        for fileobj in files.values():
+            fileobj.set_extension_as_label()
 
-    features_to_extract = [
-        Feature.BFD
-    ]
+        features_to_extract = [
+            Feature.BFD
+        ]
 
-    log.info("Extracting {fc:d} feature(s):".format(
-        fc = len(features_to_extract)
-    ))
-    for f in features_to_extract:
-        log.info("\t{fn:s}".format(fn=f))
+        log.info("Extracting {fc:d} feature(s):".format(
+            fc = len(features_to_extract)
+        ))
+        for f in features_to_extract:
+            log.info("\t{fn:s}".format(fn=f))
 
-    features_extracted = FeatureSet.extract_features_from_dataset(
-        features_to_extract, fileset
-    )
+        features_extracted = FeatureSet.extract_features_from_dataset(
+            features_to_extract, fileset
+        )
 
-    log.info("Total of {fc:d} feature(s) extracted from {fss:d} file(s).".format(
-        fc = len(features_to_extract) * len(fileset),
-        fss = len(fileset)
-    ))
+        log.info("Total of {fc:d} feature(s) extracted from {fss:d} file(s).".format(
+            fc = len(features_to_extract) * len(fileset),
+            fss = len(fileset)
+        ))
 
-    log.info("Saving features to '{ff:s}'...".format(
-        ff = features_save_file
-    ))
-    FeatureSet.save_features_to_json(features_extracted, features_save_file)
-    log.info("Completed")
+        log.info("Saving features to '{ff:s}'...".format(
+            ff = features_save_file
+        ))
+        FeatureSet.save_features_to_json(features_extracted, features_save_file)
+        log.info("Completed")
 
     features_load_file = features_save_file
     log.info("Retrieving features from '{fs:s}'...".format(
@@ -63,6 +68,52 @@ def test():
     log.info("Extracted features from {sc:d} sample(s).".format(
         sc = len(features_from_file)
     ))
+
+    #Experimental from here:
+
+    features_matrix = FeatureSet.serialize_features_matrix(features_from_file)
+    (training_set, test_set) = FeatureSet.split_matrix(features_matrix, int(len(features_matrix)*0.9))
+    training_values, training_labels = FeatureSet.split_values_and_labels(training_set)
+    #test_values, test_labels = FeatureSet.split_values_and_labels(test_set)
+
+
+    info("Applying KNN (k=3) on testing set...")
+    knn = KNeighborsClassifier(n_neighbors=3)
+    knn.fit(training_values, training_labels)
+    successful_prediction = 0
+    for (test_sample, test_label) in test_set:
+        response = knn.predict((test_sample, ))
+        if response == test_label:
+            info("\tExpected: {ea:s}\tPrediction: {pa:s}".format(
+                ea = test_label, pa = response[0]
+            ))
+            successful_prediction += 1
+        else:
+            error("\tExpected: {ea:s}\tPrediction: {pa:s}".format(
+                ea = test_label, pa = response[0]
+            ))
+
+    accuracy = successful_prediction/float(len(test_set))
+    info("Estimated accuracy: {a:.4f}".format(a=accuracy))
+
+    info("Applying SVM (C=256) on testing set...")
+    svm = SVC(C=1024, kernel='linear')
+    svm.fit(training_values, training_labels)
+    successful_prediction = 0
+    for (test_sample, test_label) in test_set:
+        response = svm.predict((test_sample, ))
+        if response == test_label:
+            info("\tExpected: {ea:s}\tPrediction: {pa:s}".format(
+                ea = test_label, pa = response[0]
+            ))
+            successful_prediction += 1
+        else:
+            error("\tExpected: {ea:s}\tPrediction: {pa:s}".format(
+                ea = test_label, pa = response[0]
+            ))
+
+    accuracy = successful_prediction/float(len(test_set))
+    info("Estimated accuracy: {a:.4f}".format(a=accuracy))
 
 def main(argv):
     """Program entry point.

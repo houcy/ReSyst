@@ -40,6 +40,59 @@ class FeaturesEncoder(json.JSONEncoder):
 class FeatureSet(object):
 
     @staticmethod
+    def split_values_and_labels(_matrix):
+        values_list = []
+        labels_list = []
+        for (values, labels) in _matrix:
+            values_list.append(values)
+            labels_list.append(labels)
+
+        return values_list, labels_list
+
+    @staticmethod
+    def split_matrix(_matrix, _count):
+        import random
+        random.shuffle(_matrix)
+        s1 = _matrix[:_count]
+        s2 = _matrix[_count:]
+        return s1, s2
+
+    @staticmethod
+    def serialize_features_matrix(_featureset, _order=None):
+        assert _featureset is not None
+
+        features_matrix = []
+
+        for featuredict in _featureset:
+            sfeat = FeatureSet.serialize_features_dict(featuredict)
+            features_matrix.append(sfeat)
+
+        return features_matrix
+
+    @staticmethod
+    def serialize_features_dict(_featuresdict, _order=None):
+        assert _featuresdict is not None
+        features_values = []
+        features_labels = []
+
+        feature_order = _order
+        if feature_order is None:
+            feature_order = _featuresdict.keys()
+
+        for f in feature_order:
+            if f in _featuresdict.keys() and f != "labels":
+                v = _featuresdict[f]
+                if isinstance(v, list):
+                    features_values += v
+                else:
+                    features_values.append(v)
+
+        if "labels" in _featuresdict.keys():
+            features_labels = _featuresdict["labels"]
+
+        return features_values, features_labels
+
+    @staticmethod
     def extract_features_from_dataset(_features, _dataset):
         assert  _features is not None
         assert _dataset is not None
@@ -127,6 +180,11 @@ class FeatureSet(object):
 
     @staticmethod
     def load_features_from_json(_jsonfile):
+        """
+        TODO
+        :param _jsonfile:
+        :return:
+        """
         assert _jsonfile is not None
         assert os.path.isfile(_jsonfile)
 
@@ -138,24 +196,26 @@ class FeatureSet(object):
         # Replaces the keys with a Feature enum object
         for fdict in json_data:
             for skey in fdict.keys():
-                feature_value = fdict[skey]
-                if skey == Feature.BFD.name:
-                    v = [0] * 256
-                    for bvalue in feature_value.keys():
-                        v[int(bvalue)] = int(feature_value[bvalue])
-                    fdict[Feature[skey]] = v
-                    del fdict[skey]
-                elif skey == Feature.WFD.name:
-                    v = [0] * 65536
-                    for bvalue in feature_value.keys():
-                        v[int(bvalue)] = int(feature_value[bvalue])
-                    fdict[Feature[skey]] = v
-                    del fdict[skey]
-                elif skey == "labels":
-                    pass
-                else:
-                    fdict[Feature[skey]] = float(feature_value)
-                    del fdict[skey]
+                if not isinstance(skey, Feature):
+                    feature_value = fdict[skey]
+                    if skey == Feature.BFD.name:
+                        v = [0] * 256
+                        for bvalue in feature_value.keys():
+                            v[int(bvalue)] = int(feature_value[bvalue])
+                        fdict[Feature[skey]] = v
+                        del fdict[skey]
+                    elif skey == Feature.WFD.name:
+                        v = [0] * 65536
+                        for bvalue in feature_value.keys():
+                            v[int(bvalue)] = int(feature_value[bvalue])
+                        fdict[Feature[skey]] = v
+                        del fdict[skey]
+                    elif skey == "labels":
+                        #Single label for now:
+                        fdict[skey] = feature_value[0]
+                    else:
+                        fdict[Feature[skey]] = float(feature_value)
+                        del fdict[skey]
 
             features_from_file.append(fdict)
 
