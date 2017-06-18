@@ -9,13 +9,17 @@
     :copyright: 2017, Jonathan Racicot, see AUTHORS for more details
     :license: MIT, see LICENSE for more details
 """
-import os
-import json
-import random
-from enum import Enum
-from resyst.dataset import DataSet
 
-class Feature (Enum):
+import json
+import time
+import random
+import threading
+from enum import Enum
+
+from resyst.codeobject import *
+
+
+class Feature(Enum):
     BFD = 1
     WFD = 2
     BYTE_VAL_MEAN = 3
@@ -28,254 +32,201 @@ class Feature (Enum):
     AVG_BYTE_CONTINUITY = 10
     LONGEST_STREAK = 11
     SHANNON_ENTROPY = 12
+    LABEL = 13
 
     def __str__(self):
         return self.name
 
 
-class FeaturesEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, Feature):
-            return str(o)
-
 class FeatureSet(object):
+    __extracting = False
 
     @staticmethod
-    def split_values_and_labels(_matrix):
-        values_list = []
-        labels_list = []
-        for (values, labels) in _matrix:
-            values_list.append(values)
-            labels_list.append(labels)
-
-        return values_list, labels_list
-
-    @staticmethod
-    def split_matrix(_matrix, _count):
-        import random
-        random.shuffle(_matrix)
-        s1 = _matrix[:_count]
-        s2 = _matrix[_count:]
-        return s1, s2
-
-    @staticmethod
-    def serialize_features_matrix(_featureset, _order=None):
-        assert _featureset is not None
-
-        features_matrix = []
-
-        for featuredict in _featureset:
-            sfeat = FeatureSet.serialize_features_dict(featuredict)
-            features_matrix.append(sfeat)
-
-        return features_matrix
-
-    @staticmethod
-    def serialize_features_dict(_featuresdict, _order=None):
-        assert _featuresdict is not None
-        features_values = []
-        features_labels = []
-
-        feature_order = _order
-        if feature_order is None:
-            feature_order = _featuresdict.keys()
-
-        for f in feature_order:
-            if f in _featuresdict.keys() and f != "labels":
-                v = _featuresdict[f]
-                if isinstance(v, list):
-                    features_values += v
-                else:
-                    features_values.append(v)
-
-        if "labels" in _featuresdict.keys():
-            features_labels = _featuresdict["labels"]
-
-        return features_values, features_labels
-
-    @staticmethod
-    def extract_features_from_dataset(_features, _dataset):
-        assert  _features is not None
-        assert _dataset is not None
-        assert len(_features) > 0
-        assert len(_dataset) > 0
-        assert isinstance(_dataset, DataSet)
-
-        features_set = []
-
-        for k in _dataset.data.keys():
-            obj = _dataset.data[k]
-            features_obj = FeatureSet.extract_features_from_single_object(_features, obj)
-            features_set.append(features_obj)
-
-        return features_set
-
-    @staticmethod
-    def extract_features_from_single_object(_features, _codeblock):
+    def extract_features_from_fileset(_features, _fileset):
         """
-        Extracts a given set of features from the given code and returns their
-        values into a dictionary.
+        Extract one or multiple features from all files contained in the given
+        file set.
 
-        This function will call the appropriate functions from the given
-        code object based on the list of desired features. The list of
-        features must contain values from the 'Feature' enumeration. The
-        codeblock must be a CodeObject. This function will return a
-        dictionary where the desired features are the keys and the
-        computed values are the values.
+        This function will iterate thru each FileObject within the
+        given file set and extract each feature required. This function
+        will return a dictionary of dictionaries:
 
-        :param _features: A list of features to extract from the given
-        code object.
-        :param _codeblock: The CodeObject to extract features from.
-        :return: A dictionary where the features are the keys and their
-        values are the values associated to the feature.
-        """
-        assert  _features is not None
-        assert _codeblock is not None
-        assert len(_features) > 0
-
-        features = _features
-        code_blocks = _codeblock
-
-        if not isinstance(_features, list):
-            features = [_features]
-
-        for f in features:
-            assert isinstance(f, Feature)
-
-        return FeatureSet.__extract_features_from_single_object(features, code_blocks)
-
-    @staticmethod
-    def save_features_to_json(_featureset, _destfile):
-        """
-        Saves a set of features to the provided destination file using the
-        JSON format.
-
-        This function will store the given feature set, which is expected to
-        be a list of dictionaries created by the FeatureSet.extract_features_from_dataset
-        function, to the given file using the JSON format.
-
-        :param _featureset: A list of dictionaries
-        :param _destfile: The JSON file to save the features into.
-        :return:
-        """
-        assert _featureset is not None
-        assert _destfile is not None
-
-        #
-        # Reference:
-        # https://stackoverflow.com/questions/12734517/json-dumping-a-dict-gives-typeerror-keys-must-be-a-string
-        for fdict in _featureset:
-            for key in fdict.keys():
-                if type(key) is not str:
-                    try:
-                        fdict[str(key)] = fdict[key]
-                    except:
-                        try:
-                            fdict[repr(key)] = fdict[key]
-                        except:
-                            pass
-                    del fdict[key]
-
-        with open(_destfile, "w") as f:
-            f.write(json.dumps(_featureset))
-
-    @staticmethod
-    def load_features_from_json(_jsonfile):
-        """
-        TODO
-        :param _jsonfile:
-        :return:
-        """
-        assert _jsonfile is not None
-        assert os.path.isfile(_jsonfile)
-
-        features_from_file = []
-
-        with open(_jsonfile, "r") as f:
-            json_data = json.load(f)
-
-        # Replaces the keys with a Feature enum object
-        for fdict in json_data:
-            for skey in fdict.keys():
-                if not isinstance(skey, Feature):
-                    feature_value = fdict[skey]
-                    if skey == Feature.BFD.name:
-                        v = [0] * 256
-                        for bvalue in feature_value.keys():
-                            v[int(bvalue)] = int(feature_value[bvalue])
-                        fdict[Feature[skey]] = v
-                        del fdict[skey]
-                    elif skey == Feature.WFD.name:
-                        v = [0] * 65536
-                        for bvalue in feature_value.keys():
-                            v[int(bvalue)] = int(feature_value[bvalue])
-                        fdict[Feature[skey]] = v
-                        del fdict[skey]
-                    elif skey == "labels":
-                        #Single label for now:
-                        fdict[skey] = feature_value[0]
-                    else:
-                        fdict[Feature[skey]] = float(feature_value)
-                        del fdict[skey]
-
-            features_from_file.append(fdict)
-
-        return features_from_file
-
-    @staticmethod
-    def __extract_features_from_single_object(_features, _codeblock):
-        """
-        This is the internal standardize function to process calls to
-        FeatureSet.extract_features.
-
-        :param _features: A list of features to extract from the given
-        code object.
-        :param _codeblock: The CodeObject to extract features from.
-        :return: A dictionary where the features are the keys and their
-        values are the values associated to the feature.
-        """
-        features_data = {
-            "labels"    :   _codeblock.labels
+        results = {
+          <FileObject1.hash> : {
+                <Feature1>   :   <Value1(s)>,
+                <Feature2>   :   <Value2(s)>
+                ...
+                }
         }
 
-        for ft in _features:
-            if ft == Feature.BFD:
-                features_data[Feature.BFD] = _codeblock.bfd()
-            elif ft == Feature.WFD:
-                features_data[Feature.WFD] = _codeblock.wfd()
-            elif ft == Feature.BYTE_VAL_MEAN:
-                features_data[Feature.BYTE_VAL_MEAN] = _codeblock.mean_byte_value()
-            elif ft == Feature.BYTE_VAL_STDDEV:
-                features_data[Feature.BYTE_VAL_STDDEV] = _codeblock.byte_std_dev()
-            elif ft == Feature.BYTE_VAL_MAD:
-                features_data[Feature.BYTE_VAL_STDDEV] = _codeblock.byte_mean_dev()
-            elif ft == Feature.LOW_ASCII_FREQ:
-                features_data[Feature.LOW_ASCII_FREQ] = _codeblock.low_ascii_freq()
-            elif ft == Feature.HIGH_ASCII_FREQ:
-                features_data[Feature.HIGH_ASCII_FREQ] = _codeblock.high_ascii_freq()
-            elif ft == Feature.STD_KURTOSIS:
-                features_data[Feature.STD_KURTOSIS] = _codeblock.byte_std_kurtosis()
-            elif ft == Feature.STD_SKEWNESS:
-                features_data[Feature.STD_SKEWNESS] = _codeblock.byte_mean_dev()
-            elif ft == Feature.AVG_BYTE_CONTINUITY:
-                features_data[Feature.AVG_BYTE_CONTINUITY] = _codeblock.byte_avg_continuity()
-            elif ft == Feature.LONGEST_STREAK:
-                features_data[Feature.LONGEST_STREAK] = _codeblock.longest_byte_streak()
-            elif ft == Feature.SHANNON_ENTROPY:
-                features_data[Feature.SHANNON_ENTROPY] = _codeblock.shannon_entropy()
+        :param _features: A list of Feature objects.
+        :param _fileset: A FileSet object with one or more FileObject
+        :return: A dictionary of features in which the keys are the hash of the
+        file object and the values are dictionaries of features, including the
+        labels.
+        """
+        assert _features is not None
+        assert _fileset is not None
+        assert len(_features) > 0
+        assert len(_fileset) > 0
+        from queue import Queue
 
+        extracted_features_queue = Queue()
+        extracted_features_dict = {}
+        FeatureSet.__extracting = True
+
+        threads = []
+        process_features_from_queue = threading.Thread(
+            name="t_extracted_features_queue_reader",
+            target=FeatureSet.__manage_extracted_feature_queue,
+            args=(extracted_features_queue, extracted_features_dict)
+        )
+
+        process_features_from_queue.start()
+
+        files = _fileset.objects.values()
+        for file in files:
+            for feature in _features:
+                t = threading.Thread(
+                    name="t_{f:s}_{h:s}".format(f=feature, h=file.hash),
+                    target=FeatureSet.__extract_feature_from_code_object,
+                    args=(feature, file, extracted_features_queue)
+                )
+                while len(threads) >= 30:
+                    time.sleep(0.8)
+                    for st in threads:
+                        if not st.is_alive():
+                            threads.remove(st)
+
+                threads.append(t)
+                t.start()
+            time.sleep(0.3)
+
+        debug("Waiting for feature extraction threads to terminate ({tc:d})...".format(
+            tc=len(threads)
+        ))
+        time.sleep(2)
+        t_i = 0
+        while len(threads) > 0:
+            t = threads[t_i % len(threads)]
+            t.join(timeout=2)
+            if t.is_alive():
+                debug("\tWaiting on '{tn:s}'...".format(tn=t.name))
+            else:
+                threads.remove(t)
+            t_i += 1
+            time.sleep(2)
+
+        FeatureSet.__extracting = False
+
+        process_features_from_queue.join(timeout=3)
+        if process_features_from_queue.is_alive():
+            warn("Failed to terminate thread '{tn:s}'.".format(tn=process_features_from_queue.name))
+
+        features_data = FeatureData(extracted_features_dict)
         return features_data
+
+    @staticmethod
+    def __extract_feature_from_code_object(_feature, _code, _queue):
+        """
+        Extracts a specific feature from the given code object and adds the extracted
+        information in the provided queue.
+
+        This function will verify the given feature and call the associated function of
+        the code object. It will store the code object, the Feature object and the
+        results into a tuple, which will be enqueued for later retrieval. The tuple
+        enqueue is in the format (_code, _feature, results).
+
+        :param _feature: The feature to extract. Must be a Feature enum.
+        :param _code: The code object to extract the feature from. Must be a CodeObject.
+        :param _queue: A Queue object in which the data will be enqueued.
+        :return:
+        """
+        assert _feature is not None
+        assert _code is not None and isinstance(_code, CodeObject)
+        assert _queue is not None
+        debug("Extracting '{fn:s}' from code object '{h:s}'...".format(
+            fn=_feature, h=_code.hash
+        ))
+        feature_data = None
+
+        if _feature == Feature.BFD:
+            feature_data = _code.bfd()
+        elif _feature == Feature.WFD:
+            feature_data = _code.wfd()
+        elif _feature == Feature.BYTE_VAL_MEAN:
+            feature_data = _code.mean_byte_value()
+        elif _feature == Feature.BYTE_VAL_STDDEV:
+            feature_data = _code.byte_std_dev()
+        elif _feature == Feature.BYTE_VAL_MAD:
+            feature_data = _code.byte_mean_dev()
+        elif _feature == Feature.LOW_ASCII_FREQ:
+            feature_data = _code.low_ascii_freq()
+        elif _feature == Feature.HIGH_ASCII_FREQ:
+            feature_data = _code.high_ascii_freq()
+        elif _feature == Feature.STD_KURTOSIS:
+            feature_data = _code.byte_std_kurtosis()
+        elif _feature == Feature.STD_SKEWNESS:
+            feature_data = _code.byte_mean_dev()
+        elif _feature == Feature.AVG_BYTE_CONTINUITY:
+            feature_data = _code.byte_avg_continuity()
+        elif _feature == Feature.LONGEST_STREAK:
+            feature_data = _code.longest_byte_streak()
+        elif _feature == Feature.SHANNON_ENTROPY:
+            feature_data = _code.shannon_entropy()
+
+        _queue.put((_code, _feature, feature_data))
+
+    @staticmethod
+    def __manage_extracted_feature_queue(_queue, _features_dict):
+        """
+        Consumes the objects contained in the given queue and inserts them
+        in the dictionary object provided.
+
+        This function expects a tuple of 3 items to be rad from the Queue. The first
+        item should be a FileObject, the second should be a Feature enumeration and
+        the third one, the value for that Feature extracted from the FileObject:
+        (<FileObject>, <Feature>, feature_result)
+
+        The values of this tuple will be inserted into the given dictionary. The
+        dictionary created by this function is in the following format:
+
+        {
+          <FileObject1.hash>     :   {  <Feature1>    :  <Value1>,
+                                        ...
+                                        <FeatureN>    :  <ValueN>,
+          ...
+        }
+
+        :param _queue: A queue.Queue object from which object will be consumed.
+        :param _features_dict: A dictionary object containing the features extracted
+        from file objects.
+        :return:
+        """
+        while FeatureSet.__extracting:
+            (fobj, feature, feature_result) = _queue.get()
+            if fobj.hash in _features_dict:
+                _features_dict[fobj.hash][feature] = feature_result
+                debug("Added feature '{:s}' to '{:s}'.".format(feature, fobj.hash))
+            else:
+                _features_dict[fobj.hash] = {
+                    feature: feature_result,
+                    Feature.LABEL: fobj.labels
+                }
+            _queue.task_done()
+            time.sleep(0.5)
 
 
 class FeatureData(object):
-    def __init__(self, _data = None):
+    def __init__(self, _data=None):
         self._data = _data
 
     def __len__(self):
         return len(self._data)
 
     @property
-    def data(self): return self._data
+    def data(self):
+        return self._data
 
     def get_training_and_test_sets(self, _percentage):
         """
@@ -298,7 +249,7 @@ class FeatureData(object):
         ds1, ds2 = self.__split_by_percentage(_percentage)
 
         ds1_values, ds1_labels = ds1.__serialize_features_matrix()
-        ds2_values, ds2_labels = ds1.__serialize_features_matrix()
+        ds2_values, ds2_labels = ds2.__serialize_features_matrix()
 
         return [(ds1_values, ds1_labels), (ds2_values, ds2_labels)]
 
@@ -346,8 +297,8 @@ class FeatureData(object):
 
         random.shuffle(self._data)
 
-        is1 = self._data[_count:]
-        is2 = self._data[:_count]
+        is1 = self._data[:_count]
+        is2 = self._data[_count:]
 
         ds1 = FeatureData(is1)
         ds2 = FeatureData(is2)
@@ -377,7 +328,7 @@ class FeatureData(object):
         features_labels = []
 
         for featuredict in self._data:
-            v, l = FeatureSet.serialize_features_dict(featuredict)
+            v, l = self.__serialize_features_dict(featuredict)
             features_values.append(v)
             features_labels.append(l)
 
@@ -403,17 +354,51 @@ class FeatureData(object):
         features_labels = []
 
         for f in _featuresdict.keys():
-            if f in _featuresdict.keys() and f != "labels":
+            if f in _featuresdict.keys() and f != Feature.LABEL:
                 v = _featuresdict[f]
                 if isinstance(v, list):
                     features_values += v
                 else:
                     features_values.append(v)
 
-        if "labels" in _featuresdict.keys():
-            features_labels = _featuresdict["labels"]
+        if Feature.LABEL in _featuresdict.keys():
+            features_labels = _featuresdict[Feature.LABEL]
 
         return features_values, features_labels
+
+    def save_features_to_json(self, _featureset, _destfile):
+        """
+        Saves a set of features to the provided destination file using the
+        JSON format.
+
+        This function will store the given feature set, which is expected to
+        be a list of dictionaries created by the FeatureSet.extract_features_from_dataset
+        function, to the given file using the JSON format.
+
+        :param _featureset: A list of dictionaries
+        :param _destfile: The JSON file to save the features into.
+        :return:
+        """
+        assert _featureset is not None
+        assert _destfile is not None
+
+        #
+        # Reference:
+        # https://stackoverflow.com/questions/12734517/json-dumping-a-dict-gives-typeerror-keys-must-be-a-string
+        for fdict in self._data.values():
+            for key in fdict.keys():
+                if type(key) is not str:
+                    try:
+                        fdict[str(key)] = fdict[key]
+                    except:
+                        try:
+                            fdict[repr(key)] = fdict[key]
+                        except:
+                            pass
+                    del fdict[key]
+
+        with open(_destfile, "w") as f:
+            f.write(json.dumps(self._data))
 
     @staticmethod
     def load_features_from_json(_jsonfile):
@@ -433,8 +418,7 @@ class FeatureData(object):
             json_data = json.load(f)
 
         # Replaces the keys with a Feature enum object
-        for fdict in json_data:
-            labels = None
+        for fdict in json_data.values():
             for skey in fdict.keys():
                 if not isinstance(skey, Feature):
                     feature_value = fdict[skey]
@@ -450,9 +434,10 @@ class FeatureData(object):
                             v[int(bvalue)] = int(feature_value[bvalue])
                         fdict[Feature[skey]] = v
                         del fdict[skey]
-                    elif skey == "labels":
+                    elif skey == Feature.LABEL.name:
                         # Single label for now:
-                        fdict[skey] = feature_value[0]
+                        fdict[Feature.LABEL] = feature_value[0]
+                        del fdict[skey]
                     else:
                         fdict[Feature[skey]] = float(feature_value)
                         del fdict[skey]

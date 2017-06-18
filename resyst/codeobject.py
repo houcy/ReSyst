@@ -17,13 +17,14 @@ import hashlib
 
 from resyst.log import *
 
+
 class LabelledObject(object):
-    def __init__(self, _labels = None):
+    def __init__(self, _labels=None):
         """
         Initializes the object with the given labels if any.
         :param _labels: A list of label to add to the object.
         """
-        if _labels == None:
+        if _labels is None:
             self.__labels = []
         else:
             self.__labels = _labels
@@ -50,18 +51,19 @@ class LabelledObject(object):
         :param _label: The label to add. Cannot be 'None'
         :return:
         """
-        assert _label != None
+        assert _label is not None
         if _label not in self.__labels:
             debug("Adding label '{l:s}' to object '{os:s}'.".format(
-                l = _label, os = str(self)
+                l=_label, os=str(self)
             ))
             self.__labels.append(_label)
+
 
 class CodeObject(LabelledObject):
     def __init__(self, _binarydata):
         assert _binarydata is not None
         super().__init__()
-
+        self._hash = None
         self._data = _binarydata
 
     def __str__(self):
@@ -87,7 +89,7 @@ class CodeObject(LabelledObject):
         data.
         """
         if isinstance(_other, self.__class__):
-            return self._data == _other.__data
+            return self._data == _other._data
         return False
 
     def __ne__(self, _other):
@@ -104,23 +106,7 @@ class CodeObject(LabelledObject):
         """
         return not self.__eq__(_other)
 
-    @staticmethod
-    def from_file(_file, _mode="rb"):
-        """
-        Generates a CodeObject from the contents of the given file.
-
-        @param _file The file to read the contents from.
-        @param _mode The mode to read the file. By default the mode is "rb"
-        @return A CodeObject loaded with the contents of the given file.
-        """
-        assert _file is not None
-        assert os.path.isfile(_file)
-
-        with open(_file, _mode) as f:
-            data = f.read()
-
-        return CodeObject(data)
-
+    @property
     def get_data(self):
         """
         Returns the data currently held by this object.
@@ -128,6 +114,21 @@ class CodeObject(LabelledObject):
         @return Data contained in this object.
         """
         return self._data
+
+    @property
+    def hash(self):
+        """
+        Returns the hash of the current code object.
+
+        This function will calculate the SHA224 hash of the contents
+        of this code object. The first time the hash of the object is request, the
+        value is store to prevent recalculation of the value later on.
+
+        :return: The SHA224 hash of the contents of the object.
+        """
+        if self._hash is None:
+            self._hash = self.sha224()
+        return self._hash
 
     def split_by_size(self, _chunksize):
         """
@@ -368,8 +369,10 @@ class CodeObject(LabelledObject):
         @return The entropy of the current object.
         """
         entropy = 0
+        b_count = self.bfd()
+        l = float(len(self._data))
         for b in self._data:
-            p_x = float(self._data.count(b)) / len(self._data)
+            p_x = b_count[b] / l
             if p_x > 0.0:
                 entropy += p_x * math.log(p_x, 2)
         return entropy
@@ -539,15 +542,8 @@ class FileObject(CodeObject):
     def __str__(self):
         fmt = "<FileObject Size={fs:d} byte(s) Hash='{fh:s}'>"
         return fmt.format(
-            fs = len(self._data), fh = self.hash()
+            fs=len(self._data), fh=self.hash
         )
-
-    def hash(self):
-        """
-        Returns the SHA224 hash of the file.
-        :return: Returns the SHA224 hash of the file.
-        """
-        return self.sha224()
 
     @property
     def file_path(self):

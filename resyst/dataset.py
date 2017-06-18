@@ -11,11 +11,18 @@
 """
 import os
 import re
+import time
+import shutil
 import random
 import tempfile
+import threading
 
 from resyst.log import *
 from resyst.codeobject import FileObject
+from resyst.compress import *
+
+MAX_COMPRESSION_THREADS = 20
+COMPRESSION_THREAD_SLEEP = 0.5
 
 class DataSet(object):
     def __init__(self, _dict = None):
@@ -40,65 +47,10 @@ class DataSet(object):
         """
         return self.objects
 
-    def split_by_percentage(self, _percentage):
-        """
-        Shortcut function for DataSet.split_by_count. This function
-        will return 2 new datasets based on the current dataset.
+class FileSet(DataSet):
 
-        This function will calculate how many objects to be splitted
-        in 2 new datasets based on the current count of objects. The
-        function will then use DataSet.split_by_count to create the
-        datasets.
-
-        :param _percentage: A value between 0 and 1, representing the
-        percentage of current objects to include in the first dataset.
-        :return:  A tuple containing both datasets created.
-        """
-        assert _percentage > 0
-        assert _percentage < 1
-
-        count = len(self.objects) * _percentage
-        return self.split_by_count(count)
-
-    def split_by_count(self, _count):
-        """
-        Splits the current data set into 2 separated datasets.
-
-        This function will first shuffle the internal directory
-        to introduce randomness in the selection of items part of both
-        datasets. Afterwards, the sets will be divided in 2; the first
-        dataset will contain "_count" elements from the shuffled dictionary
-        while the second dataset will contain the remaining items.
-
-        This function will return a tuple containing the 2 datasets
-        created.
-
-        :param _count: The number of items to include in the first dataset.
-        This value must be greater than 0 and lower than the count of items
-        currently stored in the dataset object.
-
-        :return: A tuple containing both datasets created.
-        """
-        assert _count > 0
-        assert _count < len(self.objects)
-
-        #
-        # Reference:
-        # https://stackoverflow.com/questions/19895028/randomly-shuffling-a-dictionary-in-python
-        tkeys = list(self.objects.keys())
-        tdict = {}
-        random.shuffle(tkeys)
-
-        for skey in tkeys:
-            tdict[skey] = self.objects[skey]
-
-        is1 = tdict.items()[_count:]
-        is2 = tdict.items()[:_count]
-
-        ds1 = DataSet(is1)
-        ds2 = DataSet(is2)
-
-        return ds1, ds2
+    def __init__(self, _dict=None):
+        super().__init__(_dict)
 
     def load_from_directory(self, _dir, _filter=None):
         """
@@ -120,10 +72,6 @@ class DataSet(object):
         assert os.path.isdir(_dir)
 
         for root, dirs, filenames in os.walk(_dir):
-            debug("{cf:d} file(s) found in '{sd:s}'.".format(
-                cf = len(filenames),
-                sd = _dir
-            ))
             for filename in filenames:
                 if _filter == None:
                     self.__add_file(os.path.join(root, filename))
@@ -182,7 +130,7 @@ class DataSet(object):
                     self.__add_file(file)
         else:
             if os.path.isdir(_files):
-                self.__add_file(_files)
+                self.add_directory(_files)
 
     def __add_file(self, _file):
         """
@@ -204,9 +152,10 @@ class DataSet(object):
 
 
         new_file = FileObject(_file)
-        file_hash = new_file.hash()
+        file_hash = new_file.hash
         if file_hash not in self.objects.keys():
             self.objects[file_hash] = new_file
             debug("Added file: {f:s}.".format(
                 f = str(new_file)
             ))
+
