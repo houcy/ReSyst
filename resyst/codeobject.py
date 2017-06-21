@@ -201,11 +201,14 @@ class CodeObject(LabelledObject):
         """
         dist = {}
         for i in range(0, len(self._data), 2):
-            w = struct.unpack("H", self._data[i:i + 1])[0]
-            if w in dist:
-                dist[w] += 1
-            else:
-                dist[w] = 1
+            # If there is an odd number of bytes, we drop the
+            # last bytes.
+            if i + 2 < len(self._data):
+                w = struct.unpack("H", self._data[i:i + 2])[0]
+                if w in dist:
+                    dist[w] += 1
+                else:
+                    dist[w] = 1
 
         return dist
 
@@ -219,7 +222,7 @@ class CodeObject(LabelledObject):
 
         @return The mean value of all bytes within the object.
         """
-        return sum(map(ord, self._data)) / len(self._data)
+        return sum(self._data) / len(self._data)
 
     def byte_std_dev(self):
         """
@@ -230,7 +233,7 @@ class CodeObject(LabelledObject):
         contents of the object.
         """
         x_i = self.mean_byte_value()
-        s_i = math.sqrt(sum([math.pow(x - x_i, 2) for x in map(ord, self._data)]) / (len(self._data) - 1))
+        s_i = math.sqrt(sum([math.pow(x - x_i, 2) for x in self._data]) / (len(self._data) - 1))
         return s_i
 
     def byte_mean_dev(self):
@@ -242,7 +245,7 @@ class CodeObject(LabelledObject):
         the contents of the object.
         """
         x_i = self.mean_byte_value()
-        mad = sum([abs(x - x_i) for x in map(ord, self._data)]) / (len(self._data))
+        mad = sum([abs(x - x_i) for x in self._data]) / (len(self._data))
         return mad
 
     def byte_std_kurtosis(self):
@@ -256,7 +259,7 @@ class CodeObject(LabelledObject):
         """
         x_i = self.mean_byte_value()
         s_i = self.byte_std_dev()
-        k_i = sum([math.pow(x - x_i, 4) for x in map(ord, self._data)]) / (
+        k_i = sum([math.pow(x - x_i, 4) for x in self._data]) / (
             (len(self._data) - 1) * math.pow(s_i, 4))
         return k_i
 
@@ -271,7 +274,7 @@ class CodeObject(LabelledObject):
         """
         x_i = self.mean_byte_value()
         s_i = self.byte_std_dev()
-        g_i = sum([math.pow(x - x_i, 3) for x in map(ord, self._data)]) / (
+        g_i = sum([math.pow(x - x_i, 3) for x in self._data]) / (
             (len(self._data) - 1) * math.pow(s_i, 3))
         return g_i
 
@@ -335,10 +338,6 @@ class CodeObject(LabelledObject):
         """
         f = self.__bfd_subrange(_min=32, _max=127)
 
-        # Replaces ascii codes with corresponding characters
-        for b in f.keys():
-            f[chr(b)] = f[b]
-            del f[b]
         return f
 
     def high_ascii_freq(self):
@@ -355,10 +354,6 @@ class CodeObject(LabelledObject):
         frequency as value.
         """
         f = self.__bfd_subrange(_min=128, _max=255)
-        # Replaces ascii codes with corresponding characters
-        for b in f.keys():
-            f[chr(b)] = f[b]
-            del f[ord(b)]
 
         return f
 
@@ -369,12 +364,12 @@ class CodeObject(LabelledObject):
         @return The entropy of the current object.
         """
         entropy = 0
-        b_count = self.bfd()
         l = float(len(self._data))
-        for b in self._data:
-            p_x = b_count[b] / l
+        b_count = self.bfd()
+        for i in b_count.keys():
+            p_x = b_count[i] / l
             if p_x > 0.0:
-                entropy += p_x * math.log(p_x, 2)
+                entropy -= p_x * math.log(p_x, 256)
         return entropy
 
     def md5(self):
@@ -489,7 +484,7 @@ class CodeObject(LabelledObject):
         frequencies as values.
         """
         assert _min > 0
-        assert _max < 255
+        assert _max < 256
 
         bfd = self.bfd()
         sub_bfd = {}
@@ -514,7 +509,7 @@ class CodeObject(LabelledObject):
         frequencies as values.
         """
         assert _min > 0
-        assert _max < 65535
+        assert _max < 65536
 
         bfd = self.wfd()
         sub_bfd = {}

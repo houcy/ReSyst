@@ -19,10 +19,6 @@ import threading
 
 from resyst.log import *
 from resyst.codeobject import FileObject
-from resyst.compress import *
-
-MAX_COMPRESSION_THREADS = 20
-COMPRESSION_THREAD_SLEEP = 0.5
 
 class DataSet(object):
     def __init__(self, _dict = None):

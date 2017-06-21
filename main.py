@@ -41,7 +41,12 @@ from resyst.machine import *
 from resyst.dataset import *
 from resyst.log import *
 from resyst.features import *
-
+from sklearn.preprocessing import normalize
+from sklearn.datasets import dump_svmlight_file
+import sklearn
+from sklearn.neighbors import *
+from sklearn.svm import *
+from sklearn.model_selection import *
 #
 # //////////////////////////////////////////////////////////////////////////////
 # Constants and globals
@@ -93,26 +98,25 @@ def directory(value):
     else:
         raise argparse.ArgumentTypeError("Invalid directory: {:s}".format(value))
 
-
-def feature_list(value):
-    features_name = value.lower().split(',')
-    available_features = {
+available_features = {
         'bfd': Feature.BFD,
         'wfd': Feature.WFD,
-        'ShannonEntropy': Feature.SHANNON_ENTROPY,
-        'MeanByteValue': Feature.BYTE_VAL_MEAN,
-        'StdDevByteValue': Feature.BYTE_VAL_STDDEV,
-        'MeanAvgDevByteValue': Feature.BYTE_VAL_MAD,
-        'LowAsciiFreq': Feature.LOW_ASCII_FREQ,
-        'HighAsciiFreq': Feature.HIGH_ASCII_FREQ,
-        'StdKurtosis': Feature.STD_KURTOSIS,
-        'AvgByteCont': Feature.AVG_BYTE_CONTINUITY,
-        'LongStreak': Feature.LONGEST_STREAK,
-
+        'shannonentropy': Feature.SHANNON_ENTROPY,
+        'meanbytevalue': Feature.BYTE_VAL_MEAN,
+        'stddevbytevalue': Feature.BYTE_VAL_STDDEV,
+        'meanavgdevbytevalue': Feature.BYTE_VAL_MAD,
+        'lowasciifreq': Feature.LOW_ASCII_FREQ,
+        'highasciifreq': Feature.HIGH_ASCII_FREQ,
+        'stdkurtosis': Feature.STD_KURTOSIS,
+        'avgbytecont': Feature.AVG_BYTE_CONTINUITY,
+        'longstreak': Feature.LONGEST_STREAK,
     }
 
+def feature_list(_features_name):
+    #features_name = value.lower().split(',')
+
     features = []
-    for fname in features_name:
+    for fname in _features_name:
         if fname in available_features.keys():
             features.append(available_features[fname])
         else:
@@ -142,6 +146,7 @@ arg_parser.add_argument(
 arg_parser.add_argument("-a", "--action",
                         dest="action",
                         choices=ACTIONS,
+                        type=str.lower,
                         help="Specifies which action to perform.")
 train_options = arg_parser.add_argument_group("Training Options", "Available options for training the program.")
 train_options.add_argument("-sd", "--source-dir",
@@ -153,7 +158,9 @@ train_options.add_argument("-of", "--output-file",
                            help="File into which the training results will be written for testing and prediction.")
 train_options.add_argument("-f", "--features",
                            dest="selected_features",
-                           type=feature_list,
+                           choices=available_features.keys(),
+                           type=str.lower,
+                           nargs="+",
                            help="List of features to extract from the sample files.")
 test_options = arg_parser.add_argument_group("Testing Options", "Available options for testing the program.")
 test_options.add_argument("-tf", "--training-file",
@@ -171,93 +178,6 @@ test_options.add_argument("-tr", "--testing-ratio",
 # //////////////////////////////////////////////////////////////////////////////
 # Main
 #
-def test2():
-    source_directory = "D:\\tmp\\govdocs\\debug"
-    features_save_file = "D:\\tmp\\govdocs\\features_tst.json"
-    features = [ Feature.BFD, Feature.SHANNON_ENTROPY]
-    action_train_general_file_classification(
-        source_directory, features_save_file, features
-    )
-
-def test():
-    skip_training = False
-    source_directory = "D:\\tmp\\govdocs\\debug"
-    features_save_file = "D:\\tmp\\govdocs\\features_zip.json"
-    features_load_file = features_save_file
-    training_to_test_ratio = 0.9
-
-    if not skip_training:
-        # fileset = DataSet()
-
-        info("Loading file set from '{sd:s}'.".format(
-            sd=source_directory
-        ))
-        start = time.perf_counter()
-        fileset = CompressedFileDataSet.generate_from_directory(source_directory)
-        end = time.perf_counter()
-        info("Compressed file data set generation completed in {d:.4f} second(s).".format(
-            d=(end - start)
-        ))
-
-        # fileset.load_from_directory(source_directory)
-        info("{fc:d} file(s) loaded from '{sd:s}'.".format(
-            fc=len(fileset),
-            sd=source_directory
-        ))
-
-        files = fileset.data
-        for fileobj in files.values():
-            fileobj.set_extension_as_label()
-
-        features_to_extract = [
-            Feature.SHANNON_ENTROPY,
-            Feature.BFD
-        ]
-
-        info("Extracting {fc:d} feature(s):".format(
-            fc=len(features_to_extract)
-        ))
-        for f in features_to_extract:
-            info("\t{fn:s}".format(fn=f))
-
-        features_extracted = FeatureSet.extract_features_from_dataset(
-            features_to_extract, fileset
-        )
-
-        info("Total of {fc:d} feature(s) extracted from {fss:d} file(s).".format(
-            fc=len(features_to_extract) * len(fileset),
-            fss=len(fileset)
-        ))
-
-        info("Saving features to '{ff:s}'...".format(
-            ff=features_save_file
-        ))
-        FeatureSet.save_features_to_json(features_extracted, features_save_file)
-        info("Completed")
-
-    features_load_file = features_save_file
-    info("Retrieving features from '{fs:s}'...".format(
-        fs=features_load_file
-    ))
-
-    features_from_file = FeatureData.load_features_from_json(features_load_file)
-    info("Extracted features from {sc:d} sample(s).".format(
-        sc=len(features_from_file)
-    ))
-
-    k = 3
-    C = 256
-    kernel = 'linear'
-    gamma = 2
-    knn = KNNClassifier(_k=k)
-    svm = SVMClassifier(_C=C, _kernel=kernel, _gamma=gamma)
-
-    knn_accuracy, _ = knn.test_accuracy(features_from_file, _training_to_test_ratio=training_to_test_ratio)
-    svm_accuracy, _ = svm.test_accuracy(features_from_file, _training_to_test_ratio=training_to_test_ratio)
-
-    info("KNN-{kv:d}: Estimated accuracy: {av:.4f}".format(kv=k, av=knn_accuracy))
-    info("SVM (C={cv:d}, kernel='{kv:s}', gamma='{gv:.2f}'): Estimated accuracy: {av:.4f}".format(
-        cv=C, kv=kernel, gv=gamma, av=svm_accuracy))
 
 def action_train_general_file_classification(_source_directory, _output_file, _features):
     """
@@ -318,6 +238,8 @@ def action_test_general_file_classification(_training_file, _training_to_test_ra
     info("Loading features from file...")
     start = time.perf_counter()
     features = FeatureData.load_features_from_json(_training_file)
+    features_vectors, features_labels = features.to_feature_matrix()
+
     end = time.perf_counter()
     info("Loaded {ftc:d} feature(s) from '{fs:s}' in {ts:f} second(s).".format(
         ftc=len(features), fs=_training_file, ts=(end-start)
@@ -326,43 +248,54 @@ def action_test_general_file_classification(_training_file, _training_to_test_ra
     info("Generating classifiers...")
     classifiers = []
     for k in [1, 3]:
-        classifiers.append(KNNClassifier(_k=k))
+        classifiers.append(KNeighborsClassifier(n_neighbors=k))
 
-    for C in [2, 64, 128, 256]:
-        for kernel in ['linear', 'rbf']:
-            for gamma in [1, 2]:
-                classifiers.append(SVMClassifier(_C=C, _kernel=kernel, _gamma=gamma))
+    info("Searching for optimal parameters for SVM classifier...")
+    grid_search_space = [
+        {
+        'gamma': [2, 1, 0.01, 0.001],
+        'C': [128, 256, 512, 1024, 2048, 4096, 8192],
+        'kernel': ['rbf']
+        },
+        {
+        'kernel' : ['linear'],
+        'C': [128, 256, 512, 1024, 2048, 4096, 8192],
+        }
+    ]
+    svc_grid_search = GridSearchCV(SVC(C=1), grid_search_space, cv=5,
+                       scoring='precision_macro')
+    svc_grid_search.fit(features_vectors, features_labels)
+    info("Optimal parameters for SVM: ")
+    for param in svc_grid_search.best_params_:
+        info('\t{p:s}: {val:s}'.format(
+            p=param,
+            val=str(svc_grid_search.best_params_[param])))
 
-    classifiers.append(RndClassifier())
+    classifiers.append(SVC(C=svc_grid_search.best_params_['C'],
+                           kernel=svc_grid_search.best_params_['kernel'],
+                           gamma=svc_grid_search.best_params_['gamma']))
+    classifiers.append(DecisionTreeClassifier())
 
-    report = {}
-    avg_accuracy = 0.0
+    info("Conducting K-Fold Cross Validation...")
+    start = time.perf_counter()
     max_accuracy = 0.0
     best_classifier = None
-    info("Calculating accuracy for classifiers...")
     for classifier in classifiers:
-        info("\t{cn:s}".format(cn=str(classifier)))
-        accuracy, _ = classifier.test_accuracy(features, _training_to_test_ratio)
-        avg_accuracy += accuracy
-        report[str(classifier)] = accuracy
-        if accuracy > max_accuracy:
-            max_accuracy = accuracy
-            best_classifier = str(classifier)
+        info('-'*76)
+        scores = cross_val_score(classifier,features_vectors, features_labels, cv=5)
+        info("\tAccuracy: {acc:0.2f} (+/- {err:0.2f}):\n\t    Classifier: {cls:s}".format(
+            cls=repr(classifier), acc=scores.mean(), err=(scores.std() * 2)))
+        if scores.mean() > max_accuracy:
+            max_accuracy = scores.mean()
+            best_classifier = classifier
 
-    avg_accuracy = avg_accuracy / len(classifiers)
-
-    info("Accuracy Report")
-    info("=" * 76)
-
-    for classifier_name in report.keys():
-        classifier_accuracy = report[classifier_name]
-        info("\t{a:.4f}:\t{cn:s}".format(
-            a = classifier_accuracy, cn=classifier_name
-        ))
-    info("=" * 76)
-    info("Average Accuracy: {aa:.4f}".format(aa=avg_accuracy))
+    end = time.perf_counter()
+    info("Concluded validation of classifiers in {ts:f} second(s).".format(
+        ts=(end-start)
+    ))
+    info("="*76)
     info("Maximum Accuracy: {ma:.4f}".format(ma=max_accuracy))
-    info("Best Classifier : {bc:s}".format(bc=best_classifier))
+    info("Best Classifier : {bc:s}".format(bc=repr(best_classifier)))
 
 def main(args):
     """Program entry point.
@@ -376,7 +309,7 @@ def main(args):
     if program_action == ACTION_TRAIN:
         source_directory = args.source_directory
         training_results_file = args.training_results
-        features_to_extract = args.selected_features
+        features_to_extract = feature_list(args.selected_features)
         action_train_general_file_classification(
             _source_directory=source_directory,
             _features=features_to_extract,
@@ -391,8 +324,7 @@ def main(args):
         )
     elif program_action == ACTION_PREDICT:
         error("Not implermented")
-    else:
-        test2()
+
     return 0
 
 

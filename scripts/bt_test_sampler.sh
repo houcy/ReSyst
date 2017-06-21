@@ -4,15 +4,13 @@ N=200
 C_U=150
 C_C=200
 C_E=120
-SKIP_SAMPLING=1
-SKIP_TRAINING=1
 SRC=../data/training/govdocs
-DST=../data/training/datatype
+DST=../data/training/obfuscated
 TEST=../data/testing/uce_sample
 RESYST=../main.py
 TRG_RESULTS=../data/results/uce_trg_results.json
 ACC_RESULTS=../data/results/uce_acc_results.txt
-FEATURES="StdKurtosis ShannonEntropy"
+FEATURES="StdKurtosis LowAsciiFreq ShannonEntropy"
 : << 'END'
 usage: D:/src/resyst/ReSyst/resyst/main.py [-h] [-V]
                                            [-a {train,test,predict,clean,debug}]
@@ -66,51 +64,47 @@ if [ ! -e $SRC ]; then
 	exit 1
 fi
 
-if [ $SKIP_SAMPLING -eq 0 ]; then
-	echo "[!] Erasing previously generated files..."
-	rm -rf $DST/plain/ &> /dev/null
-	rm -rf $DST/compressed/ &> /dev/null
-	rm -rf $DST/encrypted/ &> /dev/null
-	rm -rf $TEST &> /dev/null
-	mkdir -p $TEST &> /dev/null
+echo "[!] Erasing previously generated files..."
+rm -rf $DST/plain/ &> /dev/null
+rm -rf $DST/compressed/ &> /dev/null
+rm -rf $DST/encrypted/ &> /dev/null
+rm -rf $TEST &> /dev/null
+mkdir -p $TEST &> /dev/null
 
-	echo "[=] Copying $N uncompressed file(s) from $SRC to $DST"
-	./sampler.sh -s $SRC -d $DST/plain -c $N
+echo "[=] Copying $N uncompressed file(s) from $SRC to $DST"
+./sampler.sh -s $SRC -d $DST/plain -c $N
 
-	for FILE in $DST/plain/*; do
-		mv "$FILE" "$FILE.uncompressed"
-	done
+for FILE in $DST/plain/*; do
+    mv "$FILE" "$FILE.uncompressed"
+done
 
-	echo "[=] Generating $N compressed file(s) from $SRC to $DST"
-	./sampler.sh -s $SRC -d $DST/compressed -c $N -z
+echo "[=] Generating $N compressed file(s) from $SRC to $DST"
+./sampler.sh -s $SRC -d $DST/compressed -c $N -z
 
-	for FILE in $DST/compressed/*; do
-		mv "$FILE" "$FILE.compressed"
-	done
+for FILE in $DST/compressed/*; do
+    mv "$FILE" "$FILE.compressed"
+done
 
-	echo "[=] Generating $N encrypted file(s) from $SRC to $DST"
-	./sampler.sh -s $SRC -d $DST/encrypted -c $N -e
+echo "[=] Generating $N encrypted file(s) from $SRC to $DST"
+./sampler.sh -s $SRC -d $DST/encrypted -c $N -e
 
-	for FILE in $DST/encrypted/*; do
-		mv "$FILE" "$FILE.encrypted"
-	done
+for FILE in $DST/encrypted/*; do
+    mv "$FILE" "$FILE.encrypted"
+done
 
-	echo "[=] Creating testing sample"
-	echo "[>]	Selecting $C_U uncompressed files from $DST/plain/"
-	echo "[>]	Selecting $C_C uncompressed files from $DST/compressed/"
-	echo "[>]	Selecting $C_E uncompressed files from $DST/encrypted/"
+echo "[=] Creating testing sample"
+echo "[>]	Selecting $C_U uncompressed files from $DST/plain/"
+echo "[>]	Selecting $C_C uncompressed files from $DST/compressed/"
+echo "[>]	Selecting $C_E uncompressed files from $DST/encrypted/"
 
-	./sampler.sh -s $DST/plain/ -d $TEST -c $C_U
-	./sampler.sh -s $DST/compressed/ -d $TEST -c $C_C
-	./sampler.sh -s $DST/encrypted/ -d $TEST -c $C_E
+./sampler.sh -s $DST/plain/ -d $TEST -c $C_U
+./sampler.sh -s $DST/compressed/ -d $TEST -c $C_C
+./sampler.sh -s $DST/encrypted/ -d $TEST -c $C_E
 
-	echo "[+] Sample creation completed."
-fi
-	
+echo "[+] Sample creation completed."
+
 if [ -e $RESYST ]; then
-	if [ $SKIP_TRAINING -ne 1 ]; then
-		python3 $RESYST -a train -sd $TEST -of $TRG_RESULTS -f $FEATURES
-	fi
+	python3 $RESYST -a train -sd $TEST -of $TRG_RESULTS -f $FEATURES
 	python3 $RESYST -a test -tf $TRG_RESULTS -tr 0.9  > $ACC_RESULTS
 	python3 $RESYST -a test -tf $TRG_RESULTS -tr 0.67 >> $ACC_RESULTS
 else

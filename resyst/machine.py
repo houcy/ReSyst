@@ -13,6 +13,8 @@ import random
 from abc import *
 from sklearn.neighbors import *
 from sklearn.svm import *
+from sklearn.tree import DecisionTreeClassifier
+
 
 class Classifier(metaclass=ABCMeta):
 
@@ -103,8 +105,39 @@ class KNNClassifier(Classifier):
         accuracy = successful_predictions / float(len(test_values))
         return accuracy, results
 
+
     def predict(self, _extracted_features, **kwargs):
         response = self.knn.predict(_extracted_features)
+        return response
+
+
+class DTClassifier(Classifier):
+    def __init__(self):
+        super().__init__()
+        self.tree = DecisionTreeClassifier()
+
+    def __str__(self):
+        fmt = "<DecisionTree>"
+        return fmt
+
+    def test_accuracy(self, _featureset, _training_to_test_ratio = 0.9, **kwargs):
+        [(training_values, training_labels), (test_values, test_labels)] = \
+            _featureset.get_training_and_test_sets(_training_to_test_ratio)
+        results = []
+        self.tree.fit(training_values, training_labels)
+        successful_predictions = 0
+        for i in range(len(test_values)):
+            response = self.tree.predict(test_values[i])
+            expected = test_labels[i]
+            if response == expected:
+                successful_predictions += 1
+            results.append((response, expected))
+
+        accuracy = successful_predictions / float(len(test_values))
+        return accuracy, results
+
+    def predict(self, _extracted_features, **kwargs):
+        response = self.tree.predict(_extracted_features)
         return response
 
 class RndClassifier(Classifier):

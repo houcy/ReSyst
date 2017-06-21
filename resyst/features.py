@@ -17,7 +17,7 @@ import threading
 from enum import Enum
 
 from resyst.codeobject import *
-
+from sklearn.preprocessing import normalize
 
 class Feature(Enum):
     BFD = 1
@@ -228,6 +228,29 @@ class FeatureData(object):
     def data(self):
         return self._data
 
+    def to_feature_matrix(self):
+
+        feature_matrix = []
+        feature_labels = []
+
+        for fdict in self._data:
+            feature_vector = []
+            for skey in fdict.keys():
+                feature_value = fdict[skey]
+                if skey == Feature.LABEL:
+                        # Single label for now:
+                        feature_labels.append(feature_value)
+                else:
+                    if isinstance(feature_value, list):
+                        feature_vector += feature_value
+                    else:
+                        feature_vector.append(feature_value)
+
+            feature_matrix.append(feature_vector)
+
+        return normalize(feature_matrix), feature_labels
+
+
     def get_training_and_test_sets(self, _percentage):
         """
         Divides the current features dataset into training and testing sets
@@ -305,6 +328,17 @@ class FeatureData(object):
 
         return ds1, ds2
 
+    def serialize_features_matrix(self):
+        features_values = []
+        features_labels = []
+
+        for featuredict in self._data.values():
+            v, l = self.__serialize_features_dict(featuredict)
+            features_values.append(v)
+            features_labels.append(l)
+
+        return features_values, features_labels
+
     def __serialize_features_matrix(self):
         """
         Converts the internal list of feature dictionaries into matrices
@@ -354,7 +388,8 @@ class FeatureData(object):
         features_labels = []
 
         for f in _featuresdict.keys():
-            if f in _featuresdict.keys() and f != Feature.LABEL:
+        #for f in _featuresdict.values():
+            if f != Feature.LABEL:
                 v = _featuresdict[f]
                 if isinstance(v, list):
                     features_values += v
@@ -432,6 +467,20 @@ class FeatureData(object):
                         v = [0] * 65536
                         for bvalue in feature_value.keys():
                             v[int(bvalue)] = int(feature_value[bvalue])
+                        fdict[Feature[skey]] = v
+                        del fdict[skey]
+                    elif skey == Feature.LOW_ASCII_FREQ.name:
+                        # 32 to 127
+                        v = [0] * 95
+                        for bvalue in feature_value.keys():
+                            v[int(bvalue)-32] = int(feature_value[bvalue])
+                        fdict[Feature[skey]] = v
+                        del fdict[skey]
+                    elif skey == Feature.HIGH_ASCII_FREQ.name:
+                        # 128 to 255
+                        v = [0] * 128
+                        for bvalue in feature_value.keys():
+                            v[int(bvalue)-128] = int(feature_value[bvalue])
                         fdict[Feature[skey]] = v
                         del fdict[skey]
                     elif skey == Feature.LABEL.name:

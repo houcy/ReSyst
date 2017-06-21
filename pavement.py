@@ -3,9 +3,9 @@
 from __future__ import print_function
 
 import os
+import subprocess
 import sys
 import time
-import subprocess
 
 # Import parameters from the setup file.
 sys.path.append('.')
@@ -129,7 +129,7 @@ def run(args):
     # executable. So we just pass the package name in as the executable name,
     # since it's close enough. This should never be seen by an end user
     # installing through Setuptools anyway.
-    from resyst.main import main
+    from main import main
     raise SystemExit(main([CODE_DIRECTORY] + args))
 
 
