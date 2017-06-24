@@ -5,14 +5,14 @@ C_U=150
 C_C=200
 C_E=120
 SKIP_SAMPLING=1
-SKIP_TRAINING=1
+SKIP_TRAINING=0
 SRC=../data/training/govdocs
 DST=../data/training/datatype
 TEST=../data/testing/uce_sample
 RESYST=../main.py
 TRG_RESULTS=../data/results/uce_trg_results.json
 ACC_RESULTS=../data/results/uce_acc_results.txt
-FEATURES="StdKurtosis ShannonEntropy"
+FEATURES="bfd StdKurtosis ShannonEntropy"
 : << 'END'
 usage: D:/src/resyst/ReSyst/resyst/main.py [-h] [-V]
                                            [-a {train,test,predict,clean,debug}]
