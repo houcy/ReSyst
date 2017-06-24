@@ -23,10 +23,7 @@ while [ "$1" != "" ]; do
                                 ;;
         -c | --count)    		shift
 								N=$1
-                                ;;	
-        -p | --prefix)    		shift
-								PREFIX=$1
-                                ;;									
+                                ;;								
         -h | --help )           usage
                                 exit
                                 ;;
@@ -36,8 +33,15 @@ while [ "$1" != "" ]; do
     shift
 done
 
-mkdir -p $DST_DIR
+if [ -z $DST_DIR ]; then
+	echo "[-] Destination directory is missing."
+	exit 1
+fi
 
+if [ ! -e $DST_DIR ]; then
+	mkdir -p $DST_DIR
+fi
+	
 if [ ! -e SRC_FILE ]; then
 	echo "[-] Could not find file: $SRC_FILE"
 	exit 1
