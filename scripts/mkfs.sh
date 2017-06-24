@@ -70,6 +70,13 @@ elif [ $FS = "sqsh" ]; then
 	mksquashfs $SRC/* $DST.sqsh -comp $COMP_TYPE &> /dev/null
 elif [ $FS = "jffs2" ]; then
 	mkfs.jffs2 --root $SRC -o $DST.jffs2 &> /dev/null
+elif [ $FS = "vfat" ]; then
+	dd if=/dev/zero of=$DST.fat bs=1024 count=5
+	mkfs.vfat $DST.fat
+	mkdir -p /mnt/tmpfat
+	mount -o loop  $DST.fat /mnt/tmpfat
+	cp -rf $SRC/* /mnt/tmpfat
+	umount /mnt/tmpfat
 elif [ $FS = "iso" ]; then
 	genisoimage -o $DST.iso $SRC &> /dev/null
 else
