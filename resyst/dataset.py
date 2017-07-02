@@ -11,11 +11,7 @@
 """
 import os
 import re
-import time
-import shutil
-import random
-import tempfile
-import threading
+
 
 from resyst.log import *
 from resyst.codeobject import FileObject

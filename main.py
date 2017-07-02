@@ -47,6 +47,7 @@ import sklearn
 from sklearn.neighbors import *
 from sklearn.svm import *
 from sklearn.model_selection import *
+from sklearn.externals import joblib
 #
 # //////////////////////////////////////////////////////////////////////////////
 # Constants and globals
@@ -55,12 +56,14 @@ ACTION_TRAIN = 'train'
 ACTION_TEST = 'test'
 ACTION_PREDICT = 'predict'
 ACTION_CLEAN = 'clean'
+ACTION_ANALYZE = 'analyze'
 
 ACTIONS = [
     ACTION_TRAIN,
     ACTION_TEST,
     ACTION_PREDICT,
     ACTION_CLEAN,
+    ACTION_ANALYZE,
     "debug"  # TODO: remove
 ]
 
@@ -170,8 +173,13 @@ test_options.add_argument("-tr", "--testing-ratio",
                           dest="testing_ratio",
                           type=ratio,
                           help="Training to testing ratio to use for accuracy estimation.")
-
-
+test_options.add_argument("-cf", "--classififer-file",
+                          dest="classifier_file",
+                          help="The classifier with the highest accuracy will be saved to this file.")
+predict_options = arg_parser.add_argument_group("Predicting Options", "Available options for predicting unknown files.")
+predict_options.add_argument("-uf", "--unknown-file",
+                          dest="unknown_file",
+                          help="The file to classify.")
 #
 # //////////////////////////////////////////////////////////////////////////////
 #
@@ -230,7 +238,7 @@ def action_train_general_file_classification(_source_directory, _output_file, _f
         ftc=len(fileset)*len(_features), fs=_output_file, ts=(end-start)
     ))
 
-def action_test_general_file_classification(_training_file, _training_to_test_ratio):
+def action_test_general_file_classification(_training_file, _training_to_test_ratio, _classifier_file_output):
     assert _training_file is not None
     assert os.path.isfile(_training_file)
     assert _training_to_test_ratio > 0 and _training_to_test_ratio < 1
@@ -296,6 +304,19 @@ def action_test_general_file_classification(_training_file, _training_to_test_ra
     info("="*76)
     info("Maximum Accuracy: {ma:.4f}".format(ma=max_accuracy))
     info("Best Classifier : {bc:s}".format(bc=repr(best_classifier)))
+    info("Classifier saved to '{cf:s}'.".format(cf=_classifier_file_output))
+    joblib.dump(best_classifier, _classifier_file_output)
+
+
+def action_predict_obfuscation(_src_file, _classifier_file, _features):
+    assert os.path.isfile(_src_file)
+    assert os.path.isfile(_classifier_file)
+
+    classifier = joblib.load(_classifier_file)
+    file_obj = FileObject(_src_file)
+
+    info(repr(classifier))
+
 
 def main(args):
     """Program entry point.
@@ -318,11 +339,16 @@ def main(args):
     elif program_action == ACTION_TEST:
         training_results_file = args.training_file
         training_to_test_ratio = args.testing_ratio
+        classifier_file = args.classifier_file
         action_test_general_file_classification(
             _training_file=training_results_file,
-            _training_to_test_ratio=training_to_test_ratio
+            _training_to_test_ratio=training_to_test_ratio,
+            _classifier_file_output=classifier_file
         )
     elif program_action == ACTION_PREDICT:
+        source_file = None
+        features_to_extract = feature_list(args.selected_features)
+        classifier_file = args.classifier_file
         error("Not implermented")
 
     return 0

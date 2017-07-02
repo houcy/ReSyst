@@ -5,13 +5,14 @@ C_U=150
 C_C=200
 C_E=120
 SKIP_SAMPLING=1
-SKIP_TRAINING=0
+SKIP_TRAINING=1
 SRC=../data/training/govdocs
 DST=../data/training/datatype
 TEST=../data/testing/uce_sample
 RESYST=../main.py
 TRG_RESULTS=../data/results/uce_trg_results.json
 ACC_RESULTS=../data/results/uce_acc_results.txt
+CLF_FILE=../data/results/classifier.pkl
 FEATURES="bfd StdKurtosis ShannonEntropy"
 : << 'END'
 usage: D:/src/resyst/ReSyst/resyst/main.py [-h] [-V]
@@ -111,8 +112,8 @@ if [ -e $RESYST ]; then
 	if [ $SKIP_TRAINING -ne 1 ]; then
 		python3 $RESYST -a train -sd $TEST -of $TRG_RESULTS -f $FEATURES
 	fi
-	python3 $RESYST -a test -tf $TRG_RESULTS -tr 0.9  > $ACC_RESULTS
-	python3 $RESYST -a test -tf $TRG_RESULTS -tr 0.67 >> $ACC_RESULTS
+	python3 $RESYST -a test -tf $TRG_RESULTS -tr 0.9 -cf $CLF_FILE > $ACC_RESULTS
+	python3 $RESYST -a test -tf $TRG_RESULTS -tr 0.67 -cf $CLF_FILE >> $ACC_RESULTS
 else
 	echo [-] Could not find ReSyst launcher: $RESYST
 fi
