@@ -127,14 +127,20 @@ def main(args):
 	
 	try:	
 		if output_format == FORMAT_SRECORD:
-			srec = hexformat.SRecord.frombinfile(binary_file)
+			srec = SRecord.frombinfile(binary_file)
 			srec.tosrecfile(output_filename)
 		elif output_format == FORMAT_IHEX:
-			ihex = hexformat.IntelHex.frombinfile(binary_file)
+			ihex = IntelHex.frombinfile(binary_file)
 			ihex.toihexfile(output_filename)
 		elif output_format == FORMAT_TEKHEX:
-			tekhex = hexformat.tektronix.frombinfile(binary_file)
+			tekhex = TektronixExtHex.frombinfile(binary_file)
+			# Not setting these values manually will cause
+			# an exception from the hexformat module.
+			tekhex._startaddress = 0x0
+			tekhex._bytesperline = 32
+			tekhex._addresslength = 4
 			tekhex.totekfile(output_filename)
+				
 	except Exception as e:
 		print("[-] An error occured during conversion: {err:s}.".format(err=str(e)))
 	else:
