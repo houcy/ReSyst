@@ -228,6 +228,60 @@ class FeatureData(object):
     def data(self):
         return self._data
 
+    def to_feature_matrix2(self):
+        '''
+        Ugly hack. Need better solution
+        :return:
+        '''
+
+        feature_matrix = []
+        feature_objects = []
+
+        for fkey in self._data.keys():
+            fdict = self._data[fkey]
+            feature_objects.append(fkey)
+            feature_vector = []
+            for skey in fdict.keys():
+                feature_value = fdict[skey]
+                if skey == Feature.BFD:
+                    v = [0] * 256
+                    for bvalue in feature_value.keys():
+                        v[int(bvalue)] = float(feature_value[bvalue])
+                    feature_value = v
+                elif skey == Feature.WFD:
+                    v = [0] * 65536
+                    for bvalue in feature_value.keys():
+                        v[int(bvalue)] = float(feature_value[bvalue])
+                    feature_value = v
+                elif skey == Feature.LOW_ASCII_FREQ:
+                    # 32 to 127
+                    v = [0] * 95
+                    for bvalue in feature_value.keys():
+                        v[int(bvalue) - 32] = float(feature_value[bvalue])
+                    feature_value = v
+                elif skey == Feature.HIGH_ASCII_FREQ:
+                    # 128 to 255
+                    v = [0] * 128
+                    for bvalue in feature_value.keys():
+                        v[int(bvalue) - 128] = float(feature_value[bvalue])
+                    feature_value = v
+                elif skey == Feature.LABEL:
+                    # Single label for now:
+                    #feature_labels.append(feature_value)
+                    pass
+                else:
+                    feature_value = float(feature_value)
+
+                if isinstance(feature_value, list):
+                    feature_vector += feature_value
+                else:
+                    feature_vector.append(feature_value)
+
+            feature_matrix.append(feature_vector)
+
+        return normalize(feature_matrix), feature_objects
+
+
     def to_feature_matrix(self):
 
         feature_matrix = []
@@ -388,7 +442,6 @@ class FeatureData(object):
         features_labels = []
 
         for f in _featuresdict.keys():
-        #for f in _featuresdict.values():
             if f != Feature.LABEL:
                 v = _featuresdict[f]
                 if isinstance(v, list):

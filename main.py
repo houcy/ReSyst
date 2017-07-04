@@ -173,7 +173,7 @@ test_options.add_argument("-tr", "--testing-ratio",
                           dest="testing_ratio",
                           type=ratio,
                           help="Training to testing ratio to use for accuracy estimation.")
-test_options.add_argument("-cf", "--classififer-file",
+test_options.add_argument("-cf", "--classifier",
                           dest="classifier_file",
                           help="The classifier with the highest accuracy will be saved to this file.")
 predict_options = arg_parser.add_argument_group("Predicting Options", "Available options for predicting unknown files.")
@@ -301,6 +301,9 @@ def action_test_general_file_classification(_training_file, _training_to_test_ra
     info("Concluded validation of classifiers in {ts:f} second(s).".format(
         ts=(end-start)
     ))
+
+    best_classifier.fit(features_vectors, features_labels)
+
     info("="*76)
     info("Maximum Accuracy: {ma:.4f}".format(ma=max_accuracy))
     info("Best Classifier : {bc:s}".format(bc=repr(best_classifier)))
@@ -309,14 +312,29 @@ def action_test_general_file_classification(_training_file, _training_to_test_ra
 
 
 def action_predict_obfuscation(_src_file, _classifier_file, _features):
-    assert os.path.isfile(_src_file)
+    assert _src_file is not None
+    assert _classifier_file is not None
+    assert len(_features) > 0
     assert os.path.isfile(_classifier_file)
 
     classifier = joblib.load(_classifier_file)
-    file_obj = FileObject(_src_file)
+    file_set = FileSet()
+    if os.path.isdir(_src_file):
+        file_set.load_from_directory(_src_file)
+    else:
+        file_set.add_file(_src_file)
 
+    features = FeatureSet.extract_features_from_fileset(_features, file_set)
+    features_vectors, file_hashes = features.to_feature_matrix2()
     info(repr(classifier))
 
+    predictions = classifier.predict(features_vectors)
+    results = list(zip(file_hashes, predictions))
+    for (fh, prediction) in results:
+        fn = file_set.data[fh]
+        fn.add_label(prediction)
+
+    return file_set
 
 def main(args):
     """Program entry point.
@@ -346,10 +364,13 @@ def main(args):
             _classifier_file_output=classifier_file
         )
     elif program_action == ACTION_PREDICT:
-        source_file = None
+        source_file = args.source_directory
         features_to_extract = feature_list(args.selected_features)
         classifier_file = args.classifier_file
-        error("Not implermented")
+        results_file_set = action_predict_obfuscation(source_file, classifier_file, features_to_extract)
+        for file_hash in results_file_set.data.keys():
+            file_obj = results_file_set.data[file_hash]
+            print("{file:s}:\t{pdt:s}".format(file=file_obj.filename, pdt=','.join(file_obj.labels)))
 
     return 0
 

@@ -2,10 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7bf35a0f-11da-4a0b-86e1-78b7f1f2281d" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resyst/textobject.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.py" afterPath="$PROJECT_DIR$/main.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/resyst/dataset.py" afterPath="$PROJECT_DIR$/resyst/dataset.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/resyst/features.py" afterPath="$PROJECT_DIR$/resyst/features.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/scripts/bt_test_sampler.sh" afterPath="$PROJECT_DIR$/scripts/bt_test_sampler.sh" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/scripts/uce_test_sampler.sh" afterPath="$PROJECT_DIR$/scripts/uce_test_sampler.sh" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -21,11 +21,11 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="main.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
-              <caret line="180" column="44" lean-forward="false" selection-start-line="180" selection-start-column="44" selection-end-line="180" selection-end-column="44" />
+            <state relative-caret-position="4624">
+              <caret line="338" column="0" lean-forward="false" selection-start-line="338" selection-start-column="0" selection-end-line="343" selection-end-column="7" />
               <folding>
                 <element signature="e#1296#1333#0" expanded="true" />
               </folding>
@@ -33,10 +33,20 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="metadata.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/resyst/metadata.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="87">
+              <caret line="10" column="0" lean-forward="false" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="18" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="machine.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/resyst/machine.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1972">
+            <state relative-caret-position="1156">
               <caret line="116" column="42" lean-forward="false" selection-start-line="116" selection-start-column="20" selection-end-line="116" selection-end-column="42" />
               <folding>
                 <element signature="e#231#244#0" expanded="true" />
@@ -48,8 +58,8 @@
       <file leaf-file-name="codeobject.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/resyst/codeobject.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-6073">
-              <caret line="108" column="0" lean-forward="false" selection-start-line="108" selection-start-column="0" selection-end-line="115" selection-end-column="25" />
+            <state relative-caret-position="119">
+              <caret line="60" column="0" lean-forward="false" selection-start-line="60" selection-start-column="0" selection-end-line="60" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -70,16 +80,14 @@
       <file leaf-file-name="dataset.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/resyst/dataset.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="984">
-              <caret line="126" column="0" lean-forward="false" selection-start-line="126" selection-start-column="0" selection-end-line="126" selection-end-column="0" />
+            <state relative-caret-position="325">
+              <caret line="46" column="8" lean-forward="false" selection-start-line="46" selection-start-column="8" selection-end-line="46" selection-end-column="8" />
               <folding>
                 <element signature="e#234#243#0" expanded="true" />
                 <element signature="e#562#719#0" expanded="false" />
-                <element signature="e#763#917#0" expanded="false" />
                 <element signature="e#2168#2965#0" expanded="false" />
                 <element signature="e#3006#3315#0" expanded="false" />
                 <element signature="e#3358#3890#0" expanded="false" />
-                <element signature="e#3933#4888#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -88,15 +96,13 @@
       <file leaf-file-name="features.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/resyst/features.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="438">
-              <caret line="239" column="41" lean-forward="true" selection-start-line="239" selection-start-column="41" selection-end-line="239" selection-end-column="41" />
+            <state relative-caret-position="2009">
+              <caret line="281" column="57" lean-forward="false" selection-start-line="281" selection-start-column="57" selection-end-line="281" selection-end-column="57" />
               <folding>
                 <element signature="e#225#236#0" expanded="true" />
-                <element signature="e#755#7690#0" expanded="false" />
-                <element signature="e#6152#7690#0" expanded="false" />
-                <element signature="e#9717#10450#0" expanded="false" />
-                <element signature="e#10500#11534#0" expanded="false" />
-                <element signature="e#14530#15723#0" expanded="false" />
+                <element signature="e#11726#12459#0" expanded="false" />
+                <element signature="e#12509#13543#0" expanded="false" />
+                <element signature="e#16497#17690#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -141,9 +147,9 @@
         <option value="$PROJECT_DIR$/resyst/codeobject.py" />
         <option value="$PROJECT_DIR$/resyst/machine.py" />
         <option value="$PROJECT_DIR$/requirements.txt" />
-        <option value="$PROJECT_DIR$/resyst/features.py" />
         <option value="$PROJECT_DIR$/resyst/dataset.py" />
         <option value="$PROJECT_DIR$/resyst/textobject.py" />
+        <option value="$PROJECT_DIR$/resyst/features.py" />
         <option value="$PROJECT_DIR$/main.py" />
       </list>
     </option>
@@ -214,7 +220,7 @@
       <recent name="D:\src\resyst\ReSyst" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.Testing: Uncompressed/Compressed/Encrypted">
+  <component name="RunManager" selected="Python.Predict: Uncompressed/Compressed/Encrypted">
     <configuration default="false" name="main" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -547,7 +553,24 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <list size="11">
+    <configuration default="false" name="Predict: Uncompressed/Compressed/Encrypted" type="PythonConfigurationType" factoryName="Python">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Python34\python.exe" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="ReSyst" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="PARAMETERS" value="-a predict --source-dir D:\src\resyst\ReSyst\data\experimental\ --features bfd -cf D:\src\resyst\ReSyst\data\results\classifier.pkl" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <list size="12">
       <item index="0" class="java.lang.String" itemvalue="Python.Training: Govdocs with BFD, Entropy (Debug)" />
       <item index="1" class="java.lang.String" itemvalue="Python.Testing: Govdocs with BFD, Entropy (Debug)" />
       <item index="2" class="java.lang.String" itemvalue="Python.Training: Govdocs with All Features (001)" />
@@ -558,7 +581,8 @@
       <item index="7" class="java.lang.String" itemvalue="Python.Testing: Govdocs with BFD (001)" />
       <item index="8" class="java.lang.String" itemvalue="Python.Training: Uncompressed/Compressed/Encrypted" />
       <item index="9" class="java.lang.String" itemvalue="Python.Testing: Uncompressed/Compressed/Encrypted" />
-      <item index="10" class="java.lang.String" itemvalue="Python.main" />
+      <item index="10" class="java.lang.String" itemvalue="Python.Predict: Uncompressed/Compressed/Encrypted" />
+      <item index="11" class="java.lang.String" itemvalue="Python.main" />
     </list>
     <recent_temporary>
       <list size="1">
@@ -608,29 +632,18 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="54" />
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+      <option name="time" value="61" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/resyst/machine.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1904">
-          <caret line="116" column="42" lean-forward="false" selection-start-line="116" selection-start-column="20" selection-end-line="116" selection-end-column="42" />
-          <folding>
-            <element signature="e#231#244#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/resyst/codeobject.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6137">
-          <caret line="366" column="34" lean-forward="false" selection-start-line="366" selection-start-column="34" selection-end-line="366" selection-end-column="34" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/resyst/dataset.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="204">
@@ -638,11 +651,9 @@
           <folding>
             <element signature="e#234#243#0" expanded="true" />
             <element signature="e#562#719#0" expanded="false" />
-            <element signature="e#763#917#0" expanded="false" />
             <element signature="e#2168#2965#0" expanded="false" />
             <element signature="e#3006#3315#0" expanded="false" />
             <element signature="e#3358#3890#0" expanded="false" />
-            <element signature="e#3933#4888#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -653,11 +664,9 @@
           <caret line="241" column="59" lean-forward="false" selection-start-line="241" selection-start-column="59" selection-end-line="241" selection-end-column="59" />
           <folding>
             <element signature="e#225#236#0" expanded="true" />
-            <element signature="e#755#7690#0" expanded="false" />
-            <element signature="e#6152#7690#0" expanded="false" />
-            <element signature="e#9717#10450#0" expanded="false" />
-            <element signature="e#10500#11534#0" expanded="false" />
-            <element signature="e#14530#15723#0" expanded="false" />
+            <element signature="e#11726#12459#0" expanded="false" />
+            <element signature="e#12509#13543#0" expanded="false" />
+            <element signature="e#16497#17690#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -689,11 +698,9 @@
           <folding>
             <element signature="e#234#243#0" expanded="true" />
             <element signature="e#562#719#0" expanded="false" />
-            <element signature="e#763#917#0" expanded="false" />
             <element signature="e#2168#2965#0" expanded="false" />
             <element signature="e#3006#3315#0" expanded="false" />
             <element signature="e#3358#3890#0" expanded="false" />
-            <element signature="e#3933#4888#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -704,11 +711,9 @@
           <caret line="26" column="20" lean-forward="false" selection-start-line="26" selection-start-column="20" selection-end-line="26" selection-end-column="20" />
           <folding>
             <element signature="e#225#236#0" expanded="true" />
-            <element signature="e#755#7690#0" expanded="false" />
-            <element signature="e#6152#7690#0" expanded="false" />
-            <element signature="e#9717#10450#0" expanded="false" />
-            <element signature="e#10500#11534#0" expanded="false" />
-            <element signature="e#14530#15723#0" expanded="false" />
+            <element signature="e#11726#12459#0" expanded="false" />
+            <element signature="e#12509#13543#0" expanded="false" />
+            <element signature="e#16497#17690#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -759,11 +764,9 @@
           <folding>
             <element signature="e#234#243#0" expanded="true" />
             <element signature="e#562#719#0" expanded="false" />
-            <element signature="e#763#917#0" expanded="false" />
             <element signature="e#2168#2965#0" expanded="false" />
             <element signature="e#3006#3315#0" expanded="false" />
             <element signature="e#3358#3890#0" expanded="false" />
-            <element signature="e#3933#4888#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -781,11 +784,9 @@
           <caret line="97" column="0" lean-forward="true" selection-start-line="97" selection-start-column="0" selection-end-line="97" selection-end-column="0" />
           <folding>
             <element signature="e#225#236#0" expanded="true" />
-            <element signature="e#755#7690#0" expanded="false" />
-            <element signature="e#6152#7690#0" expanded="false" />
-            <element signature="e#9717#10450#0" expanded="false" />
-            <element signature="e#10500#11534#0" expanded="false" />
-            <element signature="e#14530#15723#0" expanded="false" />
+            <element signature="e#11726#12459#0" expanded="false" />
+            <element signature="e#12509#13543#0" expanded="false" />
+            <element signature="e#16497#17690#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -925,13 +926,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/Python34/Lib/codecs.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="122">
-          <caret line="300" column="0" lean-forward="false" selection-start-line="300" selection-start-column="0" selection-end-line="300" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://C:/Python34/Lib/site-packages/sklearn/utils/extmath.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="122">
@@ -982,36 +976,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resyst/machine.py">
+    <entry file="file://C:/Python34/Lib/site-packages/sklearn/preprocessing/data.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1972">
-          <caret line="116" column="42" lean-forward="false" selection-start-line="116" selection-start-column="20" selection-end-line="116" selection-end-column="42" />
-          <folding>
-            <element signature="e#231#244#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/resyst/dataset.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="984">
-          <caret line="126" column="0" lean-forward="false" selection-start-line="126" selection-start-column="0" selection-end-line="126" selection-end-column="0" />
-          <folding>
-            <element signature="e#234#243#0" expanded="true" />
-            <element signature="e#562#719#0" expanded="false" />
-            <element signature="e#763#917#0" expanded="false" />
-            <element signature="e#2168#2965#0" expanded="false" />
-            <element signature="e#3006#3315#0" expanded="false" />
-            <element signature="e#3358#3890#0" expanded="false" />
-            <element signature="e#3933#4888#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/resyst/codeobject.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-6073">
-          <caret line="108" column="0" lean-forward="false" selection-start-line="108" selection-start-column="0" selection-end-line="115" selection-end-column="25" />
+        <state relative-caret-position="119">
+          <caret line="1343" column="0" lean-forward="false" selection-start-line="1343" selection-start-column="0" selection-end-line="1343" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -1026,28 +994,74 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/resyst/machine.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1156">
+          <caret line="116" column="42" lean-forward="false" selection-start-line="116" selection-start-column="20" selection-end-line="116" selection-end-column="42" />
+          <folding>
+            <element signature="e#231#244#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Python34/Lib/codecs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="122">
+          <caret line="300" column="0" lean-forward="false" selection-start-line="300" selection-start-column="0" selection-end-line="300" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resyst/dataset.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="325">
+          <caret line="46" column="8" lean-forward="false" selection-start-line="46" selection-start-column="8" selection-end-line="46" selection-end-column="8" />
+          <folding>
+            <element signature="e#234#243#0" expanded="true" />
+            <element signature="e#562#719#0" expanded="false" />
+            <element signature="e#2168#2965#0" expanded="false" />
+            <element signature="e#3006#3315#0" expanded="false" />
+            <element signature="e#3358#3890#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/resyst/features.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="438">
-          <caret line="239" column="41" lean-forward="true" selection-start-line="239" selection-start-column="41" selection-end-line="239" selection-end-column="41" />
+        <state relative-caret-position="2009">
+          <caret line="281" column="57" lean-forward="false" selection-start-line="281" selection-start-column="57" selection-end-line="281" selection-end-column="57" />
           <folding>
             <element signature="e#225#236#0" expanded="true" />
-            <element signature="e#755#7690#0" expanded="false" />
-            <element signature="e#6152#7690#0" expanded="false" />
-            <element signature="e#9717#10450#0" expanded="false" />
-            <element signature="e#10500#11534#0" expanded="false" />
-            <element signature="e#14530#15723#0" expanded="false" />
+            <element signature="e#11726#12459#0" expanded="false" />
+            <element signature="e#12509#13543#0" expanded="false" />
+            <element signature="e#16497#17690#0" expanded="false" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resyst/codeobject.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="60" column="0" lean-forward="false" selection-start-line="60" selection-start-column="0" selection-end-line="60" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="180" column="44" lean-forward="false" selection-start-line="180" selection-start-column="44" selection-end-line="180" selection-end-column="44" />
+        <state relative-caret-position="4624">
+          <caret line="338" column="0" lean-forward="false" selection-start-line="338" selection-start-column="0" selection-end-line="343" selection-end-column="7" />
           <folding>
             <element signature="e#1296#1333#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resyst/metadata.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="87">
+          <caret line="10" column="0" lean-forward="false" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="18" />
+          <folding />
         </state>
       </provider>
     </entry>
