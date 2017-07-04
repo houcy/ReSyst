@@ -35,6 +35,7 @@ done
 
 if [ -z $DST_DIR ]; then
 	echo "[-] Destination directory is missing."
+	usage
 	exit 1
 fi
 
@@ -42,7 +43,7 @@ if [ ! -e $DST_DIR ]; then
 	mkdir -p $DST_DIR
 fi
 	
-if [ ! -e SRC_FILE ]; then
+if [ ! -e $SRC_FILE ]; then
 	echo "[-] Could not find file: $SRC_FILE"
 	exit 1
 fi
@@ -54,7 +55,7 @@ fi
 
 echo "[=] Downloading $N file(s) from $SRC_FILE..."
 for FILE in `shuf -n $N $SRC_FILE`; do
-	echo "[>]\t$FILE"
+	echo "[>]	$FILE"
 	wget --tries=45 --mirror -o dropper.log -e robots=off -A zip,pkg,rar,bin,img,gz,7z --ignore-case $FILE -P $DST_DIR &> /dev/null
 done
 
