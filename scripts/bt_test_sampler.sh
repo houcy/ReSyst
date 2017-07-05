@@ -1,16 +1,23 @@
 #!/bin/bash
 
-N=200
-C_U=150
-C_C=200
-C_E=120
-SRC=../data/training/govdocs
-DST=../data/training/obfuscated
-TEST=../data/testing/uce_sample
+N_PT=20
+N_AB=20
+N_BT=20
+N_FB=20
+SRC=../data/training/
+SRC_PT=$SRC/govdocs
+DST=../data/training/datatype
+DST_PT=$DST/plain-text
+DST_AB=$DST/ascii-binary
+DST_BT=$DST/binary-text
+DST_FB=$DST/full-binary
+TEST=../data/testing/dt_sample
 RESYST=../main.py
-TRG_RESULTS=../data/results/uce_trg_results.json
-ACC_RESULTS=../data/results/uce_acc_results.txt
-FEATURES="StdKurtosis LowAsciiFreq ShannonEntropy"
+CREATE_SAMPLES=1
+TRAIN_RESYST=0
+TRG_RESULTS=../data/results/bt_trg_results.json
+ACC_RESULTS=../data/results/bt_acc_results.txt
+FEATURES="bfd"
 : << 'END'
 usage: D:/src/resyst/ReSyst/resyst/main.py [-h] [-V]
                                            [-a {train,test,predict,clean,debug}]
@@ -64,46 +71,27 @@ if [ ! -e $SRC ]; then
 	exit 1
 fi
 
-echo "[!] Erasing previously generated files..."
-rm -rf $DST/plain/ &> /dev/null
-rm -rf $DST/compressed/ &> /dev/null
-rm -rf $DST/encrypted/ &> /dev/null
-rm -rf $TEST &> /dev/null
-mkdir -p $TEST &> /dev/null
+if [ ! -e $DST ]; then
+	mkdir -p $DST
+	mkdir -p $DST_PT
+	mkdir -p $DST_AB
+	mkdir -p $DST_BT
+	mkdir -p $DST_FB
+fi
 
-echo "[=] Copying $N uncompressed file(s) from $SRC to $DST"
-./sampler.sh -s $SRC -d $DST/plain -c $N
+if [ $CREATE_SAMPLES -eq 1 ]; then
+	echo "[!] Copying $N_PT plain text file(s) from $SRC_PT to $DST_PT..."
+	find $SRC_PT -regextype posix-egrep -regex ".*\.(txt|rtf|html|1st)$" -type f | sort -R | tail -$N_PT | while read FILE; do
+		cp -f "$FILE" "$DST_PT"
+	done
 
-for FILE in $DST/plain/*; do
-    mv "$FILE" "$FILE.uncompressed"
-done
-
-echo "[=] Generating $N compressed file(s) from $SRC to $DST"
-./sampler.sh -s $SRC -d $DST/compressed -c $N -z
-
-for FILE in $DST/compressed/*; do
-    mv "$FILE" "$FILE.compressed"
-done
-
-echo "[=] Generating $N encrypted file(s) from $SRC to $DST"
-./sampler.sh -s $SRC -d $DST/encrypted -c $N -e
-
-for FILE in $DST/encrypted/*; do
-    mv "$FILE" "$FILE.encrypted"
-done
-
-echo "[=] Creating testing sample"
-echo "[>]	Selecting $C_U uncompressed files from $DST/plain/"
-echo "[>]	Selecting $C_C uncompressed files from $DST/compressed/"
-echo "[>]	Selecting $C_E uncompressed files from $DST/encrypted/"
-
-./sampler.sh -s $DST/plain/ -d $TEST -c $C_U
-./sampler.sh -s $DST/compressed/ -d $TEST -c $C_C
-./sampler.sh -s $DST/encrypted/ -d $TEST -c $C_E
-
-echo "[+] Sample creation completed."
-
-if [ -e $RESYST ]; then
+	echo "[!] Copying $N_BT binary text file(s) from $SRC_BT to $DST_BT..."
+	find $SRC_PT -regextype posix-egrep -regex ".*\.(doc|pdf|xls|docx)$" -type f | sort -R | tail -$N_BT | while read FILE; do
+		cp -f "$FILE" "$DST_BT"
+	done
+fi
+	
+if [ -e $RESYST ] && [ $TRAIN_RESYST -eq 1 ]; then
 	python3 $RESYST -a train -sd $TEST -of $TRG_RESULTS -f $FEATURES
 	python3 $RESYST -a test -tf $TRG_RESULTS -tr 0.9  > $ACC_RESULTS
 	python3 $RESYST -a test -tf $TRG_RESULTS -tr 0.67 >> $ACC_RESULTS
