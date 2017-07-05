@@ -56,7 +56,7 @@ fi
 echo "[=] Downloading $N file(s) from $SRC_FILE..."
 for FILE in `shuf -n $N $SRC_FILE`; do
 	echo "[>]	$FILE"
-	wget --tries=45 --mirror -o dropper.log -e robots=off -A zip,pkg,rar,bin,img,gz,7z --ignore-case $FILE -P $DST_DIR &> /dev/null
+	wget --tries=45 --mirror -o dropper.log -e robots=off -A zip,pkg,rar,bin,img,gz,7z,tgz --ignore-case $FILE -P $DST_DIR &> /dev/null
 done
 
 echo "[+] Completed. Terminating..."

@@ -4,7 +4,11 @@ N_PT=20
 N_AB=20
 N_BT=20
 N_FB=20
+HEX_SCRIPT=./rehex.py
+HEX_FORMATS=(ihex srec tek)
 SRC=../data/training/
+SRC_BT=$SRC/govdocs
+SRC_AB=$SRC/content_type/binary
 SRC_PT=$SRC/govdocs
 DST=../data/training/datatype
 DST_PT=$DST/plain-text
@@ -66,6 +70,11 @@ if [ ! -e $RESYST ]; then
 	exit 1
 fi
 
+if [ ! -e $HEX_SCRIPT ]; then
+	echo [-] Could not find Rehex program: $HEX_SCRIPT
+	exit 1
+fi
+
 if [ ! -e $SRC ]; then
 	echo [-] Could not find source directory: $SRC
 	exit 1
@@ -89,12 +98,19 @@ if [ $CREATE_SAMPLES -eq 1 ]; then
 	find $SRC_PT -regextype posix-egrep -regex ".*\.(doc|pdf|xls|docx)$" -type f | sort -R | tail -$N_BT | while read FILE; do
 		cp -f "$FILE" "$DST_BT"
 	done
+	
+	echo "[!] Generating $N_AB ASCII-formatted binary files from $SRC_AB to $DST_AB..."
+	find $SRC_AB -type f | sort -R | tail -$N_BT | while read FILE; do
+		HEX_TYPE=${HEX_FORMATS[$RANDOM % ${#HEX_FORMATS[@]}]}
+	done
 fi
 	
-if [ -e $RESYST ] && [ $TRAIN_RESYST -eq 1 ]; then
-	python3 $RESYST -a train -sd $TEST -of $TRG_RESULTS -f $FEATURES
-	python3 $RESYST -a test -tf $TRG_RESULTS -tr 0.9  > $ACC_RESULTS
-	python3 $RESYST -a test -tf $TRG_RESULTS -tr 0.67 >> $ACC_RESULTS
-else
-	echo [-] Could not find ReSyst launcher: $RESYST
+if [ $TRAIN_RESYST -eq 1 ]; then
+	if [ -e $RESYST ]; then
+		python3 $RESYST -a train -sd $TEST -of $TRG_RESULTS -f $FEATURES
+		python3 $RESYST -a test -tf $TRG_RESULTS -tr 0.9  > $ACC_RESULTS
+		python3 $RESYST -a test -tf $TRG_RESULTS -tr 0.67 >> $ACC_RESULTS
+	else
+		echo [-] Could not find ReSyst launcher: $RESYST
+	fi
 fi
