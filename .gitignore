@@ -39,3 +39,4 @@ pip-log.txt
 
 ## Training/Testing data directory
 data/
+*.log
