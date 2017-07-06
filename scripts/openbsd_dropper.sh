@@ -46,12 +46,15 @@ if [ $UNTAR -eq 1 ]; then
 fi
 
 if [ $CLEAN -eq 1 ]; then
-	find $DST_DIR -regextype posix-egrep -regex ".*\.(sh|config|cfg|pl|py)$" -type f | while read FILE; do
+
+	find $DST_DIR -type f -exec file -i '{}' \; | grep 'charset=us-ascii' | cut -d: -f1 | while read FILE; do
+		echo "[!] Removing non-binary file '$FILE'..."
 		rm -rf $FILE
 	done
 	
 	if [ $DELETE_TAR -eq 1 ]; then
-		find $DST_DIR -regextype posix-egrep -regex ".*\.(sh|config|cfg|pl|py)$" -type f | while read FILE; do
+		find $DST_DIR -type f -name '*.tgz' | while read FILE; do
+			echo "[!] Removing archive file '$FILE'..."
 			rm -rf $FILE
 		done
 	fi
