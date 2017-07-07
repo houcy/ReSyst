@@ -338,7 +338,7 @@ def main(args):
 							f.write(np_json)
 						print("[+] Saved labelled noun phrases.")
 						
-			sentence_no += 1
+				sentence_no += 1
 			
 if __name__ == '__main__':
     # entry_point()
