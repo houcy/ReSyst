@@ -211,12 +211,31 @@ def main(args):
 		source_files = os.listdit(source_file)
 	
 	np_dict = {}
-	
+	stats = {
+		"UNLABELLED": 0,
+		"MANUFACTURER": 0,
+		"DEVICE_MODEL": 0,
+		"FIRMWARE_VERSION": 0,
+		"OPERATING_SYSTEM": 0,
+		"DEVICE_COMPONENT": 0
+	}
 	if os.path.isfile(output_file):
 		print("[=] Loading results from '{db:s}'...".format(db=output_file))
 		with open(output_file) as f:    
 			np_dict = json.load(f)
 		print("[=] Loaded {nb:d} noun phrase(s) from database.".format(nb=len(np_dict)))
+		
+		for k in np_dict.keys():
+			labels = np_dict[k]["labels"]
+
+			if len(labels) <=0 :
+				stats["UNLABELLED"] += 1
+			else:
+				for l in labels:
+					stats[l] += 1
+					
+		for s in stats.keys():
+			print("\t{lbl:s}: {nb:d}".format(lbl=s, nb=stats[s])
 	
 	if len(source_files) > 0:
 	
