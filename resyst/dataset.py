@@ -15,6 +15,7 @@ import re
 
 from resyst.log import *
 from resyst.codeobject import FileObject
+from resyst.codeobject import CodeObject
 
 class DataSet(object):
     def __init__(self, _dict = None):
@@ -38,6 +39,50 @@ class DataSet(object):
         :return: Reference to the internal dictionary.
         """
         return self.objects
+
+class CodeSet(DataSet):
+    def __init__(self, _dict=None):
+        super().__init__(_dict)
+
+    def add_code_from_file(self, _fileobj, _size):
+        """
+        Adds code segments of the given size from the file object provided.
+
+        This function will use the FileObject.split_by_size function to extract
+        code segments from the file, all of length "_size", except the last one
+        if the file is not a multiple of "_size". If a code segment with the
+        same hash is already in the set, the code segment will be dismissed.
+
+        :param _fileobj: The FileObject to split. Cannot be 'None'.
+        :param _size: The size of each code segment.
+        :return:
+        """
+        assert _fileobj is not None
+
+        if _size > 0:
+            for code_chunk in _fileobj.split_by_size(_size):
+                self.__add_code(code_chunk)
+        else:
+            file_hash = _fileobj.hash
+            if file_hash not in self.objects.keys():
+                self.objects[file_hash] = _fileobj
+
+    def __add_code(self, _code):
+        """
+        Adds a code segment to the current code set.
+
+        :param _code: Code object to be contained in the code segment.
+        :return:
+        """
+        assert _code is not None
+
+        code_obj = _code
+        code_hash = code_obj.hash
+        if code_hash not in self.objects.keys():
+            self.objects[code_hash] = code_obj
+            debug("Added code segment: {f:s}.".format(
+                f = str(code_obj)
+            ))
 
 class FileSet(DataSet):
 

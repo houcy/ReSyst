@@ -61,6 +61,10 @@
 # --------
 LOG_FILE="recollect.log"
 #
+# Features selection
+# ------------------
+UCE_FEATURES="bfd"
+#
 # URL Archives
 URL_ARCHIVE="urls.zip"
 #
@@ -79,6 +83,7 @@ DLOAD_DIR=$BASE_DIR/downloads
 REPO_DIR=$BASE_DIR/repo
 SAMPLES_DIR=$BASE_DIR/samples
 URLS_DIR=$BASE_DIR/urls
+RESULTS_DIR=$BASE_DIR/results
 
 DLOAD_GOVDOCS_DIR=$DLOAD_DIR/govdocs
 DLOAD_OPENBSD_DIR=$DLOAD_DIR/openbsd
@@ -104,6 +109,12 @@ CRYP_DIR=$REPO_DIR/encrypted
 URL_OPENBSD_PKG="openbsd-6.1-pkgs-"
 URL_GOVDOCS="govdocs1-archives.txt"
 URL_FIRMWARE="firmware-urls-1.0.txt"
+#
+# Result files
+# ------------
+UCE_RESULTS=$RESULTS_DIR/uce_trg_results.json
+UCE_CLASSIFIER=$RESULTS_DIR/uce_classifier.pkl
+UCE_ACC_RESULTS=$RESULTS_DIR/uce_test_results.txt
 #
 # Options and flags
 # -----------------
@@ -135,12 +146,16 @@ SKIP_BD_COLL=1
 SKIP_FB_COLL=1
 SKIP_AB_COLL=1
 SKIP_FS_COLL=1
-SKIP_CRYPTO_COLL=0
-SKIP_ARCHIVE_COLL=0
-SKIP_UCE_SAMPLE=0
+SKIP_CRYPTO_COLL=1
+SKIP_ARCHIVE_COLL=1
+SKIP_UCE_SAMPLE=1
+
+SKIP_UCE_TRAINING=0
+SKIP_UCE_TESTING=0
 #
 # Programs and subscripts
 # -----------------------
+RESYST=../main.py
 HEX_SCRIPT=./rehex.py
 #
 # //////////////////////////////////////////////////////////////////////////////
@@ -676,5 +691,17 @@ else
 	
 	if [ $SKIP_UCE_SAMPLE -eq 0 ]; then
 		generate_uce_sample $DEFAULT_UNCOMPRESSED_CNT $DEFAULT_COMPRESSED_CNT $DEFAULT_ENCRYPTED_CNT
+	fi
+	
+	if [ $SKIP_UCE_TRAINING -eq 0 ]; then
+		if [ -e $RESYST ]; then
+			python3 $RESYST -a train -sd $INIF_SAMPLES_DIR -of $UCE_RESULTS -f $UCE_FEATURES
+		else
+			echo "[-] Failed to locate ReSyst: $RESYST."
+		fi
+	fi
+	
+	if [ $SKIP_UCE_TESTING -eq 0 ]; then
+		python3 $RESYST -a test -tf $UCE_RESULTS -tr 0.9 -cf $UCE_CLASSIFIER > $UCE_ACC_RESULTS
 	fi
 fi

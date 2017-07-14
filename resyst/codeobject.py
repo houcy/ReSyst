@@ -58,6 +58,11 @@ class LabelledObject(object):
             ))
             self.__labels.append(_label)
 
+    def add_labels(self, _labels):
+        assert _labels is not None
+
+        for l in _labels:
+            self.add_label(l)
 
 class CodeObject(LabelledObject):
     def __init__(self, _binarydata):
@@ -146,7 +151,9 @@ class CodeObject(LabelledObject):
         assert _chunksize < len(self._data)
 
         for i in range(0, len(self._data), _chunksize):
-            yield CodeObject(self._data[i:i + _chunksize])
+            code_obj = CodeObject(self._data[i:i + _chunksize])
+            code_obj.add_labels(self.labels)
+            yield code_obj
 
     def to_file(self, _file, _mode="wb"):
         """

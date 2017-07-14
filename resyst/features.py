@@ -42,7 +42,7 @@ class FeatureSet(object):
     __extracting = False
 
     @staticmethod
-    def extract_features_from_fileset(_features, _fileset):
+    def extract_features_from_fileset(_features, _codeset):
         """
         Extract one or multiple features from all files contained in the given
         file set.
@@ -52,7 +52,7 @@ class FeatureSet(object):
         will return a dictionary of dictionaries:
 
         results = {
-          <FileObject1.hash> : {
+          <CodeObject1.hash> : {
                 <Feature1>   :   <Value1(s)>,
                 <Feature2>   :   <Value2(s)>
                 ...
@@ -60,15 +60,15 @@ class FeatureSet(object):
         }
 
         :param _features: A list of Feature objects.
-        :param _fileset: A FileSet object with one or more FileObject
+        :param _codeset: A CodeSet object with one or more CodeObject
         :return: A dictionary of features in which the keys are the hash of the
-        file object and the values are dictionaries of features, including the
+        code object and the values are dictionaries of features, including the
         labels.
         """
         assert _features is not None
-        assert _fileset is not None
+        assert _codeset is not None
         assert len(_features) > 0
-        assert len(_fileset) > 0
+        assert len(_codeset) > 0
         from queue import Queue
 
         extracted_features_queue = Queue()
@@ -84,7 +84,7 @@ class FeatureSet(object):
 
         process_features_from_queue.start()
 
-        files = _fileset.objects.values()
+        files = _codeset.objects.values()
         for file in files:
             for feature in _features:
                 t = threading.Thread(

@@ -165,6 +165,11 @@ train_options.add_argument("-f", "--features",
                            type=str.lower,
                            nargs="+",
                            help="List of features to extract from the sample files.")
+train_options.add_argument("-ss", "--segment-size",
+                           dest="segment_size",
+                           type=int,
+                           default=0,
+                           help="Specifies a segment size when dividing file objects.")
 test_options = arg_parser.add_argument_group("Testing Options", "Available options for testing the program.")
 test_options.add_argument("-tf", "--training-file",
                           dest="training_file",
@@ -187,7 +192,7 @@ predict_options.add_argument("-uf", "--unknown-file",
 # Main
 #
 
-def action_train_general_file_classification(_source_directory, _output_file, _features):
+def action_train_general_file_classification(_source_directory, _output_file, _features, _chunk_size=-1):
     """
     TODO: PyDoc
     :param _source_directory:
@@ -222,12 +227,20 @@ def action_train_general_file_classification(_source_directory, _output_file, _f
         fc=len(fileset), ts = (end-start)
     ))
 
+    codeset = CodeSet()
+    if _chunk_size > 0:
+        info("Dividing file objects into chunks of {csz:d} byte(s).".format(csz=_chunk_size))
+        for fileobj in files.values():
+            codeset.add_code_from_file(fileobj, _chunk_size)
+    else:
+        codeset = fileset
+
     info("Extracting features from file set...")
     start = time.perf_counter()
-    features = FeatureSet.extract_features_from_fileset(_features, fileset)
+    features = FeatureSet.extract_features_from_fileset(_features, codeset)
     end = time.perf_counter()
     info("{ftc:d} feature(s) extracted from {fc:d} file(s) in {ts:f} second(s).".format(
-        ftc=len(fileset)*len(_features), fc=len(fileset), ts=(end-start)
+        ftc=len(codeset)*len(_features), fc=len(codeset), ts=(end-start)
     ))
 
     info("Saving extracted features...")
@@ -235,7 +248,7 @@ def action_train_general_file_classification(_source_directory, _output_file, _f
     features.save_features_to_json(features, _output_file)
     end = time.perf_counter()
     info("Saved {ftc:d} feature(s) to '{fs:s}' in {ts:f} second(s).".format(
-        ftc=len(fileset)*len(_features), fs=_output_file, ts=(end-start)
+        ftc=len(codeset)*len(_features), fs=_output_file, ts=(end-start)
     ))
 
 def action_test_general_file_classification(_training_file, _training_to_test_ratio, _classifier_file_output):
@@ -349,10 +362,12 @@ def main(args):
         source_directory = args.source_directory
         training_results_file = args.training_results
         features_to_extract = feature_list(args.selected_features)
+        segment_size = args.segment_size
         action_train_general_file_classification(
             _source_directory=source_directory,
             _features=features_to_extract,
-            _output_file=training_results_file
+            _output_file=training_results_file,
+            _chunk_size=segment_size
         )
     elif program_action == ACTION_TEST:
         training_results_file = args.training_file
