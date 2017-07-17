@@ -43,15 +43,18 @@
 # 4) Generate samples
 #	4.1) Generate uncompressed file samples
 #	4.2) Generate compressed file samples
-#	4.3)	Generate encrypted file samples
+#	4.3)	 Generate encrypted file samples
+#	4.4) Generate architectures samples
 # 5) Generate classifiers
 #	5.1) Generate U/C/E classifier 
 #	5.2) Generate P/A/B/F classifier
 #	5.3) Generate keyword classifier
+#	5.4) Generate architecture classifier
 # 6) Test classifiers
 #	6.1)	Generate report for U/C/E classifier
 #	6.2)	Generate report for P/A/B/F classifier
 #	6.3) Generate report for keyword classifier
+#	6.3) Generate report for archtecture classifier
 
 # //////////////////////////////////////////////////////////////////////////////
 # Variables and parameters
@@ -64,6 +67,8 @@ LOG_FILE="recollect.log"
 # Features selection
 # ------------------
 UCE_FEATURES="bfd"
+FS_FEATURES="bfd"
+ARCH_FEATURES=""
 #
 # URL Archives
 URL_ARCHIVE="urls.zip"
@@ -90,10 +95,11 @@ DLOAD_OPENBSD_DIR=$DLOAD_DIR/openbsd
 DLOAD_FIRMWARE_DIR=$DLOAD_DIR/firmware
 
 INIF_SAMPLES_DIR=$SAMPLES_DIR/initial_files
-IMGF_SAMPLES_DIR=$SAMPLES_DIR/image_files
+PADF_SAMPLES_DIR=$SAMPLES_DIR/image_files
 FSYS_SAMPLES_DIR=$SAMPLES_DIR/filesystems
 FIWR_SAMPLES_DIR=$SAMPLES_DIR/firmwares
 MANL_SAMPLES_DIR=$SAMPLES_DIR/manuals_and_notes
+ARCH_SAMPLES_DIR=$SAMPLES_DIR/arch
 
 PTXT_DIR=$REPO_DIR/plain-text
 FBIN_DIR=$REPO_DIR/full-binary
@@ -115,13 +121,30 @@ URL_FIRMWARE="firmware-urls-1.0.txt"
 UCE_RESULTS=$RESULTS_DIR/uce_trg_results.json
 UCE_CLASSIFIER=$RESULTS_DIR/uce_classifier.pkl
 UCE_ACC_RESULTS=$RESULTS_DIR/uce_test_results.txt
+
+
+FS_RESULTS=$RESULTS_DIR/fs_trg_results.json
+FS_CLASSIFIER=$RESULTS_DIR/fs_classifier.pkl
+FS_ACC_RESULTS=$RESULTS_DIR/fs_test_results.txt
+
+ARCH_RESULTS=$RESULTS_DIR/arch_trg_results.json
+ARCH_CLASSIFIER=$RESULTS_DIR/arch_classifier.pkl
+ARCH_ACC_RESULTS=$RESULTS_DIR/arch_test_results.txt
+
 #
 # Options and flags
 # -----------------
+# Count of GovDocs packages to download
 DEFAULT_GOVDOCS_PKG_DL=1
+# Count of OpenBSD packages to download
 DEFAULT_OPENBSD_PKG_DL=10
+# Count fo firmware files to download.
 DEFAULT_FIRMWARES_DL=1
-
+#
+# Collection sizes
+# ----------------
+# Default size of the plain-text document 
+# collection
 DEFAULT_PT_COLL_SIZE=20
 DEFAULT_BD_COLL_SIZE=20
 DEFAULT_FB_COLL_SIZE=20
@@ -133,9 +156,19 @@ DEFAULT_ARCHIVE_COLL_SIZE=10
 DEFAULT_UNCOMPRESSED_CNT=10
 DEFAULT_COMPRESSED_CNT=10
 DEFAULT_ENCRYPTED_CNT=10
+	
+DEFAULT_PT_CNT=10
+DEFAULT_AB_CNT=10
+DEFAULT_BD_CNT=10
+DEFAULT_FB_CNT=10
+	
+DEFAULT_FS_SAMPLE_SIZE=20
+DEFAULT_ARCH_SAMPLE_SIZE=20
 
 MAX_FILES_FSYS=10
 
+# Specifies to skip data directory
+# tree creation
 SKIP_CREATE_TREE=1
 SKIP_DL_GOVDOCS=1
 SKIP_DL_OPENBSD=1
@@ -148,10 +181,42 @@ SKIP_AB_COLL=1
 SKIP_FS_COLL=1
 SKIP_CRYPTO_COLL=1
 SKIP_ARCHIVE_COLL=1
-SKIP_UCE_SAMPLE=1
 
+
+
+#
+# P/A/D/F Training and testing options
+# ----------------------------------
+# Specifies to skip sample creation
+# for plain-text/ascii-bin/bin-doc/full-binary
+# document training.
+SKIP_PADF_SAMPLE=0
+SKIP_PADF_TRAINING=0
+SKIP_PADF_TESTING=0
+#
+# U/C/E Training and testing options
+# ----------------------------------
+# Specifies to skip sampling of
+# uncompressed/compressed/encryption documents
+SKIP_UCE_SAMPLE=1
+# Specifies to skip training of 
+# uncompressed/compressed/encryption recognition
 SKIP_UCE_TRAINING=0
+# Specifies to skip testing of
+# uncompressed/compressed/encryption training
 SKIP_UCE_TESTING=0
+#
+# File system training and testing options
+# ----------------------------------
+# Specifies to skip training of file system
+# recognition
+SKIP_FS_SAMPLE=0
+SKIP_FS_TRAINING=0
+SKIP_FS_TESTING=0
+
+SKIP_ARCH_SAMPLE=0
+SKIP_ARCH_TRAINING=0
+SKIP_ARCH_TESTING=0
 #
 # Programs and subscripts
 # -----------------------
@@ -238,7 +303,7 @@ function create_resyst_tree
 	mkdir -p $RESULTS_DIR
 	
 	mkdir -p $INIF_SAMPLES_DIR
-	mkdir -p $IMGF_SAMPLES_DIR
+	mkdir -p $PADF_SAMPLES_DIR
 	mkdir -p $FSYS_SAMPLES_DIR
 	mkdir -p $FIWR_SAMPLES_DIR
 	mkdir -p $MANL_SAMPLES_DIR
@@ -336,8 +401,8 @@ function dl_openbsd_pkgs
 }
 
 #
-# Downloads random packages from the
-# OpenBSD repositories from multiple architectures
+#
+#
 # ------------------------------------------------
 function dl_firmwares
 {
@@ -481,7 +546,7 @@ function generate_squash
 	DST_DIR=$FSYS_DIR/squashfs
 	OUT_FILE=$DST_DIR/$IMAGE_NAME.sqsh
 	
-	find $REPO_DIR -type f | sort -R | tail -$N | while read FILE; do
+	find $REPO_DIR -type f  | sort -R | tail -$N | while read FILE; do
 		cp $FILE $TDIR
 	done
 	
@@ -580,7 +645,9 @@ function generate_compressed_collection
 		fi
 	done
 }
-
+#
+#
+# 
 function generate_uce_sample
 {
 	N_U=$1
@@ -620,6 +687,73 @@ function generate_uce_sample
 			cp $FILE $DST_FILE
 		fi
 	done	
+}
+#
+# Generates a sample of files containing plain-text,
+# ascii-formated binaries, binary documents and full
+# binaries.
+# :param: $1  Count of plain-text files to include in the
+#			sample.
+# :param: $2  Count of ascii-formated binary files to include
+#			in the sample.
+function generate_padf_sample
+{
+	N_P=$1
+	N_A=$2
+	N_D=$3
+	N_F=$4
+	
+	echo "[=] Copying $N_P plain-text file(s) to $PADF_SAMPLES_DIR..."
+	find $PTXT_DIR -type f | sort -R | tail -$N_P | while read FILE; do
+		echo "[>]	$FILE"
+		cp $FILE $PADF_SAMPLES_DIR	
+	done
+	
+	echo "[=] Copying $N_A ascii-formated binary file(s) to $PADF_SAMPLES_DIR..."
+	find $BHEX_DIR -type f | sort -R | tail -$N_A | while read FILE; do
+		echo "[>]	$FILE"
+		cp $FILE $PADF_SAMPLES_DIR	
+	done
+	
+	echo "[=] Copying $N_D binary document file(s) to $PADF_SAMPLES_DIR..."
+	find $BDOC_DIR -type f | sort -R | tail -$N_D | while read FILE; do
+		echo "[>]	$FILE"
+		cp $FILE $PADF_SAMPLES_DIR	
+	done
+	
+	echo "[=] Copying $N_F binary file(s) to $PADF_SAMPLES_DIR..."
+	find $FBIN_DIR -type f | sort -R | tail -$N_D | while read FILE; do
+		echo "[>]	$FILE"
+		cp $FILE $PADF_SAMPLES_DIR	
+	done	
+}
+#
+#
+#
+function generate_fs_sample
+{
+	N=$1
+	echo "[=] Create sample (N=$N) for filesystem classification..."
+	find $FSYS_DIR -type f | sort -R | tail -$N | while read FILE; do
+		echo "[>]	$FILE"
+		cp $FILE $FSYS_SAMPLES_DIR
+	done
+}
+#
+#
+# :param: $1 Count of file to copy into the samples directory
+#		 for each architecture.
+function generate_arch_sample
+{
+	N=$1
+	for A in "${ARCH[@]}"; do
+		echo "[=] Create sample (N=$N) of $A binary file(s) to $ARCH_SAMPLES_DIR..."
+		ARCH_DIR=$DLOAD_OPENBSD_DIR/$A
+		find $ARCH_DIR -type f -exec file -i '{}' \; | grep 'charset=binary' | cut -d: -f1 | sort -R | tail -$N | while read FILE; do
+			echo "[>]	$FILE"
+			cp $FILE $ARCH_SAMPLES_DIR.$A		
+		done
+	done
 }
 #
 # //////////////////////////////////////////////////////////////////////////////
@@ -689,13 +823,18 @@ else
 		generate_crypto_collection $DEFAULT_CRYPTO_COLL_SIZE
 	fi
 	
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# Uncompressed/Compressed/Encrypted Recognition Training and Testing
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-	
 	if [ $SKIP_UCE_SAMPLE -eq 0 ]; then
 		generate_uce_sample $DEFAULT_UNCOMPRESSED_CNT $DEFAULT_COMPRESSED_CNT $DEFAULT_ENCRYPTED_CNT
 	fi
 	
 	if [ $SKIP_UCE_TRAINING -eq 0 ]; then
 		if [ -e $RESYST ]; then
+			echo "[=] Training on generated U/C/E sample at $INIF_SAMPLES_DIR..."
 			python3 $RESYST -a train -sd $INIF_SAMPLES_DIR -of $UCE_RESULTS -f $UCE_FEATURES
+			echo "[=] U/C/E training completed."
 		else
 			echo "[-] Failed to locate ReSyst: $RESYST."
 		fi
@@ -703,5 +842,64 @@ else
 	
 	if [ $SKIP_UCE_TESTING -eq 0 ]; then
 		python3 $RESYST -a test -tf $UCE_RESULTS -tr 0.9 -cf $UCE_CLASSIFIER > $UCE_ACC_RESULTS
+	fi	
+
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# Plain-Text/Binary Recognition Training and Testing
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+	if [ $SKIP_PADF_SAMPLE -eq 0 ]; then
+		generate_padf_sample $DEFAULT_PT_CNT $DEFAULT_AB_CNT $DEFAULT_BD_CNT $DEFAULT_FB_CNT
+	fi
+	
+	if [ $SKIP_PADF_TRAINING -eq 0 ]; then
+		if [ -e $RESYST ]; then
+			echo "[=] Training on generated P/A/D/F sample at $PADF_SAMPLES_DIR..."
+			python3 $RESYST -a train -sd $PADF_SAMPLES_DIR -of $PADF_RESULTS -f $PADF_FEATURES
+			echo "[=] U/C/E training completed."
+		else
+			echo "[-] Failed to locate ReSyst: $RESYST."
+		fi
+	fi
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# File System Recognition Training and Testing
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+	if [ $SKIP_FS_SAMPLE -eq 0 ]; then
+		generate_fs_sample $DEFAULT_FS_SAMPLE_SIZE
+	fi
+	
+	if [ $SKIP_FS_TRAINING -eq 0 ]; then
+	
+		if [ -e $RESYST ]; then
+			echo "[=] Training on generated file systems samples at $FSYS_SAMPLES_DIR..."
+			python3 $RESYST -a train -sd $FSYS_SAMPLES_DIR -of $FS_RESULTS -f $FS_FEATURES
+			echo "[=] File system recognition training completed."
+		else
+			echo "[-] Failed to locate ReSyst: $RESYST."
+		fi
+	fi
+
+	if [ $SKIP_FS_TESTING -eq 0 ]; then
+		python3 $RESYST -a test -tf $FS_RESULTS -tr 0.9 -cf $FS_CLASSIFIER > $FS_ACC_RESULTS
+	fi		
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# Architecture Recognition Training and Testing
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-	
+	if [ $SKIP_ARCH_SAMPLE -eq 0 ]; then
+		generate_arch_sample $DEFAULT_ARCH_SAMPLE_SIZE
+	fi
+	
+	if [ $SKIP_ARCH_TRAINING -eq 0 ]; then
+	
+		if [ -e $RESYST ]; then
+			echo "[=] Training on generated architecture samples at $ARCH_SAMPLES_DIR..."
+			python3 $RESYST -a train -sd $ARCH_SAMPLES_DIR -of $ARCH_RESULTS -f $ARCH_FEATURES
+			echo "[=] Architecture recognition training completed."
+		else
+			echo "[-] Failed to locate ReSyst: $RESYST."
+		fi
+	fi
+
+	if [ $SKIP_ARCH_TESTING -eq 0 ]; then
+		python3 $RESYST -a test -tf $ARCH_RESULTS -tr 0.9 -cf $ARCH_CLASSIFIER > $ARCH_ACC_RESULTS
 	fi
 fi
