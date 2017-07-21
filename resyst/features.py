@@ -33,6 +33,10 @@ class Feature(Enum):
     LONGEST_STREAK = 11
     SHANNON_ENTROPY = 12
     LABEL = 13
+    B_FFFE= 14
+    B_0001= 15
+    B_1000= 16
+    B_FEFF= 17
 
     def __str__(self):
         return self.name
@@ -174,6 +178,14 @@ class FeatureSet(object):
             feature_data = _code.longest_byte_streak()
         elif _feature == Feature.SHANNON_ENTROPY:
             feature_data = _code.shannon_entropy()
+        elif _feature == Feature.B_0001:
+            feature_data = _code.word_count(0x0001)
+        elif _feature == Feature.B_1000:
+            feature_data = _code.word_count(0x1000)
+        elif _feature == Feature.B_FEFF:
+            feature_data = _code.word_count(0xFEFF)
+        elif _feature == Feature.B_FFFE:
+            feature_data = _code.word_count(0xFFFE)
 
         _queue.put((_code, _feature, feature_data))
 
@@ -485,7 +497,7 @@ class FeatureData(object):
                             pass
                     del fdict[key]
 
-        with open(_destfile, "w") as f:
+        with open(_destfile, "w+") as f:
             f.write(json.dumps(self._data))
 
     @staticmethod

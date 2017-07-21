@@ -68,7 +68,7 @@ LOG_FILE="recollect.log"
 # ------------------
 UCE_FEATURES="bfd"
 FS_FEATURES="bfd"
-ARCH_FEATURES=""
+ARCH_FEATURES="bfd cntw_1000 cntw_0001 cntw_feff cntw_fffe"
 #
 # URL Archives
 URL_ARCHIVE="urls.zip"
@@ -190,9 +190,9 @@ SKIP_ARCHIVE_COLL=1
 # Specifies to skip sample creation
 # for plain-text/ascii-bin/bin-doc/full-binary
 # document training.
-SKIP_PADF_SAMPLE=0
-SKIP_PADF_TRAINING=0
-SKIP_PADF_TESTING=0
+SKIP_PADF_SAMPLE=1
+SKIP_PADF_TRAINING=1
+SKIP_PADF_TESTING=1
 #
 # U/C/E Training and testing options
 # ----------------------------------
@@ -201,20 +201,20 @@ SKIP_PADF_TESTING=0
 SKIP_UCE_SAMPLE=1
 # Specifies to skip training of 
 # uncompressed/compressed/encryption recognition
-SKIP_UCE_TRAINING=0
+SKIP_UCE_TRAINING=1
 # Specifies to skip testing of
 # uncompressed/compressed/encryption training
-SKIP_UCE_TESTING=0
+SKIP_UCE_TESTING=1
 #
 # File system training and testing options
 # ----------------------------------
 # Specifies to skip training of file system
 # recognition
-SKIP_FS_SAMPLE=0
-SKIP_FS_TRAINING=0
-SKIP_FS_TESTING=0
+SKIP_FS_SAMPLE=1
+SKIP_FS_TRAINING=1
+SKIP_FS_TESTING=1
 
-SKIP_ARCH_SAMPLE=0
+SKIP_ARCH_SAMPLE=1
 SKIP_ARCH_TRAINING=0
 SKIP_ARCH_TESTING=0
 #
@@ -307,6 +307,7 @@ function create_resyst_tree
 	mkdir -p $FSYS_SAMPLES_DIR
 	mkdir -p $FIWR_SAMPLES_DIR
 	mkdir -p $MANL_SAMPLES_DIR
+	mkdir -p $ARCH_SAMPLES_DIR
 	
 	mkdir -p $GOVDOCS_DIR
 	mkdir -p $WEB_DIR
@@ -746,12 +747,18 @@ function generate_fs_sample
 function generate_arch_sample
 {
 	N=$1
+	
+	if [ ! -e $ARCH_SAMPLES_DIR ]; then
+		mkdir -p $ARCH_SAMPLES_DIR
+	fi
+	
 	for A in "${ARCH[@]}"; do
 		echo "[=] Create sample (N=$N) of $A binary file(s) to $ARCH_SAMPLES_DIR..."
 		ARCH_DIR=$DLOAD_OPENBSD_DIR/$A
 		find $ARCH_DIR -type f -exec file -i '{}' \; | grep 'charset=binary' | cut -d: -f1 | sort -R | tail -$N | while read FILE; do
 			echo "[>]	$FILE"
-			cp $FILE $ARCH_SAMPLES_DIR.$A		
+			FILENAME=$(basename "$FILE")
+			cp $FILE $ARCH_SAMPLES_DIR/$FILENAME.$A		
 		done
 	done
 }
@@ -900,6 +907,11 @@ else
 	fi
 
 	if [ $SKIP_ARCH_TESTING -eq 0 ]; then
-		python3 $RESYST -a test -tf $ARCH_RESULTS -tr 0.9 -cf $ARCH_CLASSIFIER > $ARCH_ACC_RESULTS
+		if [ -e $ARCH_RESULTS ]; then
+			python3 $RESYST -a test -tf $ARCH_RESULTS -tr 0.9 -cf $ARCH_CLASSIFIER > $ARCH_ACC_RESULTS
+		else
+			echo "[-] Failed to find training results file: $ARCH_RESULTS"
+			exit 1
+		fi
 	fi
 fi

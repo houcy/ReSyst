@@ -219,6 +219,21 @@ class CodeObject(LabelledObject):
 
         return dist
 
+    def word_count(self, _value):
+        """
+        Counts the number of occurrences of the given word in the current
+         code segment.
+        :param _value: The 16-bit word value to search for.
+        :return: The number of times the given value appears in the code object.
+        """
+        value = _value & 0xFFFF
+        count = 0
+        for i in range(0, len(self._data), 2):
+            if i + 2 < len(self._data):
+                w = struct.unpack("H", self._data[i:i + 2])[0]
+                if w == _value: count += 1
+        return float(count)
+
     def mean_byte_value(self):
         """
         Calculates the mean byte value of the code object.

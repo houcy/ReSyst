@@ -3,6 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="7bf35a0f-11da-4a0b-86e1-78b7f1f2281d" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.py" afterPath="$PROJECT_DIR$/main.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/resyst/codeobject.py" afterPath="$PROJECT_DIR$/resyst/codeobject.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/resyst/features.py" afterPath="$PROJECT_DIR$/resyst/features.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/scripts/redrop.bash" afterPath="$PROJECT_DIR$/scripts/redrop.bash" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -18,14 +20,14 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="main.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="115">
-              <caret line="363" column="40" lean-forward="false" selection-start-line="363" selection-start-column="40" selection-end-line="363" selection-end-column="40" />
+            <state relative-caret-position="498">
+              <caret line="120" column="0" lean-forward="true" selection-start-line="120" selection-start-column="0" selection-end-line="120" selection-end-column="0" />
               <folding>
                 <element signature="e#1296#1333#0" expanded="true" />
-                <element signature="e#9174#11896#0" expanded="false" />
+                <element signature="e#9325#12047#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -34,7 +36,7 @@
       <file leaf-file-name="machine.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/resyst/machine.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1190">
+            <state relative-caret-position="1904">
               <caret line="116" column="42" lean-forward="false" selection-start-line="116" selection-start-column="20" selection-end-line="116" selection-end-column="42" />
               <folding>
                 <element signature="e#231#244#0" expanded="true" />
@@ -46,8 +48,8 @@
       <file leaf-file-name="codeobject.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/resyst/codeobject.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-6668">
-              <caret line="134" column="0" lean-forward="false" selection-start-line="134" selection-start-column="0" selection-end-line="134" selection-end-column="0" />
+            <state relative-caret-position="-225">
+              <caret line="222" column="11" lean-forward="true" selection-start-line="222" selection-start-column="11" selection-end-line="222" selection-end-column="11" />
               <folding />
             </state>
           </provider>
@@ -68,8 +70,8 @@
       <file leaf-file-name="dataset.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/resyst/dataset.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1050">
-              <caret line="82" column="54" lean-forward="true" selection-start-line="82" selection-start-column="54" selection-end-line="82" selection-end-column="54" />
+            <state relative-caret-position="1292">
+              <caret line="82" column="54" lean-forward="false" selection-start-line="82" selection-start-column="54" selection-end-line="82" selection-end-column="54" />
               <folding>
                 <element signature="e#234#243#0" expanded="true" />
                 <element signature="e#603#760#0" expanded="false" />
@@ -82,16 +84,15 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="features.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="features.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/resyst/features.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="476">
-              <caret line="55" column="45" lean-forward="true" selection-start-line="55" selection-start-column="45" selection-end-line="55" selection-end-column="45" />
+            <state relative-caret-position="389">
+              <caret line="290" column="0" lean-forward="true" selection-start-line="290" selection-start-column="0" selection-end-line="290" selection-end-column="0" />
               <folding>
                 <element signature="e#225#236#0" expanded="true" />
-                <element signature="e#11726#12459#0" expanded="false" />
-                <element signature="e#12509#13543#0" expanded="false" />
-                <element signature="e#16497#17690#0" expanded="false" />
+                <element signature="e#12158#12891#0" expanded="false" />
+                <element signature="e#12941#13975#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -136,16 +137,15 @@
         <option value="$PROJECT_DIR$/resyst/machine.py" />
         <option value="$PROJECT_DIR$/requirements.txt" />
         <option value="$PROJECT_DIR$/resyst/textobject.py" />
-        <option value="$PROJECT_DIR$/resyst/features.py" />
-        <option value="$PROJECT_DIR$/resyst/codeobject.py" />
         <option value="$PROJECT_DIR$/resyst/dataset.py" />
+        <option value="$PROJECT_DIR$/resyst/codeobject.py" />
         <option value="$PROJECT_DIR$/main.py" />
+        <option value="$PROJECT_DIR$/resyst/features.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
     <option name="x" value="-8" />
-    <option name="y" value="-8" />
     <option name="width" value="1320" />
     <option name="height" value="772" />
   </component>
@@ -167,7 +167,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -197,6 +196,7 @@
         </subPane>
       </pane>
       <pane id="Scope" />
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -593,8 +593,8 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1320" height="772" extended-state="0" />
-    <editor active="false" />
+    <frame x="-8" y="0" width="1320" height="772" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -654,9 +654,8 @@
           <caret line="241" column="59" lean-forward="false" selection-start-line="241" selection-start-column="59" selection-end-line="241" selection-end-column="59" />
           <folding>
             <element signature="e#225#236#0" expanded="true" />
-            <element signature="e#11726#12459#0" expanded="false" />
-            <element signature="e#12509#13543#0" expanded="false" />
-            <element signature="e#16497#17690#0" expanded="false" />
+            <element signature="e#12158#12891#0" expanded="false" />
+            <element signature="e#12941#13975#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -667,7 +666,7 @@
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#1296#1333#0" expanded="true" />
-            <element signature="e#9174#11896#0" expanded="false" />
+            <element signature="e#9325#12047#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -703,9 +702,8 @@
           <caret line="26" column="20" lean-forward="false" selection-start-line="26" selection-start-column="20" selection-end-line="26" selection-end-column="20" />
           <folding>
             <element signature="e#225#236#0" expanded="true" />
-            <element signature="e#11726#12459#0" expanded="false" />
-            <element signature="e#12509#13543#0" expanded="false" />
-            <element signature="e#16497#17690#0" expanded="false" />
+            <element signature="e#12158#12891#0" expanded="false" />
+            <element signature="e#12941#13975#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -723,7 +721,7 @@
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#1296#1333#0" expanded="true" />
-            <element signature="e#9174#11896#0" expanded="false" />
+            <element signature="e#9325#12047#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -778,9 +776,8 @@
           <caret line="97" column="0" lean-forward="true" selection-start-line="97" selection-start-column="0" selection-end-line="97" selection-end-column="0" />
           <folding>
             <element signature="e#225#236#0" expanded="true" />
-            <element signature="e#11726#12459#0" expanded="false" />
-            <element signature="e#12509#13543#0" expanded="false" />
-            <element signature="e#16497#17690#0" expanded="false" />
+            <element signature="e#12158#12891#0" expanded="false" />
+            <element signature="e#12941#13975#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -990,6 +987,16 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/resyst/machine.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1904">
+          <caret line="116" column="42" lean-forward="false" selection-start-line="116" selection-start-column="20" selection-end-line="116" selection-end-column="42" />
+          <folding>
+            <element signature="e#231#244#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/resyst/textobject.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1411">
@@ -1000,28 +1007,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resyst/codeobject.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-6668">
-          <caret line="134" column="0" lean-forward="false" selection-start-line="134" selection-start-column="0" selection-end-line="134" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/resyst/machine.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1190">
-          <caret line="116" column="42" lean-forward="false" selection-start-line="116" selection-start-column="20" selection-end-line="116" selection-end-column="42" />
-          <folding>
-            <element signature="e#231#244#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/resyst/dataset.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1050">
-          <caret line="82" column="54" lean-forward="true" selection-start-line="82" selection-start-column="54" selection-end-line="82" selection-end-column="54" />
+        <state relative-caret-position="1292">
+          <caret line="82" column="54" lean-forward="false" selection-start-line="82" selection-start-column="54" selection-end-line="82" selection-end-column="54" />
           <folding>
             <element signature="e#234#243#0" expanded="true" />
             <element signature="e#603#760#0" expanded="false" />
@@ -1033,26 +1022,33 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resyst/features.py">
+    <entry file="file://$PROJECT_DIR$/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="476">
-          <caret line="55" column="45" lean-forward="true" selection-start-line="55" selection-start-column="45" selection-end-line="55" selection-end-column="45" />
+        <state relative-caret-position="498">
+          <caret line="120" column="0" lean-forward="true" selection-start-line="120" selection-start-column="0" selection-end-line="120" selection-end-column="0" />
           <folding>
-            <element signature="e#225#236#0" expanded="true" />
-            <element signature="e#11726#12459#0" expanded="false" />
-            <element signature="e#12509#13543#0" expanded="false" />
-            <element signature="e#16497#17690#0" expanded="false" />
+            <element signature="e#1296#1333#0" expanded="true" />
+            <element signature="e#9325#12047#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
+    <entry file="file://$PROJECT_DIR$/resyst/codeobject.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="115">
-          <caret line="363" column="40" lean-forward="false" selection-start-line="363" selection-start-column="40" selection-end-line="363" selection-end-column="40" />
+        <state relative-caret-position="-225">
+          <caret line="222" column="11" lean-forward="true" selection-start-line="222" selection-start-column="11" selection-end-line="222" selection-end-column="11" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resyst/features.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="389">
+          <caret line="290" column="0" lean-forward="true" selection-start-line="290" selection-start-column="0" selection-end-line="290" selection-end-column="0" />
           <folding>
-            <element signature="e#1296#1333#0" expanded="true" />
-            <element signature="e#9174#11896#0" expanded="false" />
+            <element signature="e#225#236#0" expanded="true" />
+            <element signature="e#12158#12891#0" expanded="false" />
+            <element signature="e#12941#13975#0" expanded="false" />
           </folding>
         </state>
       </provider>

@@ -113,6 +113,10 @@ available_features = {
         'stdkurtosis': Feature.STD_KURTOSIS,
         'avgbytecont': Feature.AVG_BYTE_CONTINUITY,
         'longstreak': Feature.LONGEST_STREAK,
+        'cntw_fffe' : Feature.B_FFFE,
+        'cntw_feff' : Feature.B_FEFF,
+        'cntw_0001' : Feature.B_0001,
+        'cntw_1000' : Feature.B_1000
     }
 
 def feature_list(_features_name):
@@ -323,6 +327,73 @@ def action_test_general_file_classification(_training_file, _training_to_test_ra
     info("Classifier saved to '{cf:s}'.".format(cf=_classifier_file_output))
     joblib.dump(best_classifier, _classifier_file_output)
 
+def action_train_filesystem_classification(_source_directory, _output_file, _features,
+                                           _general_classifier, _general_features, _chunk_size=-1):
+    """
+
+    :param _source_directory:
+    :param _output_file:
+    :param _features:
+    :param _chunk_size:
+    :return:
+    """
+    assert _source_directory is not None
+    assert os.path.isdir(_source_directory)
+    assert _output_file is not None
+    assert _features is not None
+    assert len(_features) > 0
+
+    # 1) Create a file set from source_dir
+    # 2) Label each files
+    # 3) For each file:
+    # 3.1) break into code segments
+    # 3.2) label each code segments of the file
+    # 4) Calculate frequency of each label
+
+    info("Loading files from '{sd:s}'.".format(
+        sd=_source_directory
+    ))
+    fileset = FileSet()
+    start = time.perf_counter()
+    fileset.load_from_directory(_source_directory)
+    end = time.perf_counter()
+    info("{fc:d} file(s) added to current data set in {ts:f} second(s).".format(
+        fc=len(fileset), ts = (end-start)
+    ))
+
+    info("Labeling file objects...")
+    files = fileset.data
+    start = time.perf_counter()
+    for fileobj in files.values():
+        fileobj.set_extension_as_label()
+    end = time.perf_counter()
+    info("{fc:d} file(s) labelled in {ts:f} second(s).".format(
+        fc=len(fileset), ts = (end-start)
+    ))
+
+    codeset = CodeSet()
+    if _chunk_size > 0:
+        info("Dividing file objects into chunks of {csz:d} byte(s).".format(csz=_chunk_size))
+        for fileobj in files.values():
+            codeset.add_code_from_file(fileobj, _chunk_size)
+    else:
+        codeset = fileset
+
+    info("Loading general file classifier...")
+    classifier = joblib.load(_general_classifier)
+    info(repr(classifier))
+
+    features = FeatureSet.extract_features_from_fileset(_general_features, codeset)
+    features_vectors, file_hashes = features.to_feature_matrix2()
+    predictions = classifier.predict(features_vectors)
+    #results = list(zip(file_hashes, predictions))
+
+    labels_counts = {}
+    for prediction in predictions:
+        if prediction in labels_counts.keys():
+            labels_counts[prediction] += 1
+        else:
+            labels_counts[prediction] = 1
 
 def action_predict_obfuscation(_src_file, _classifier_file, _features):
     assert _src_file is not None
